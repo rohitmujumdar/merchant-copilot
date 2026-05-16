@@ -97,6 +97,7 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
             strategy=strategy,
             history_summary=history_summary,
             run_number=run_number,
+            memory_agent=memory,  # Agent-to-Agent: Shopper can query Memory mid-run
         )
 
         # ── 5. PAYMENT AGENT: Fire if purchased ────────────────────

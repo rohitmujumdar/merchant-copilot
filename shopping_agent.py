@@ -61,7 +61,8 @@ Done: <outcome summary>"""
 
 
 def run_shopping_episode(context_graph: dict, strategy: dict,
-                         history_summary: str, run_number: int) -> dict:
+                         history_summary: str, run_number: int,
+                         memory_agent=None) -> dict:
     """
     Run one full shopping episode using Claude as the reasoning agent.
 
@@ -82,22 +83,34 @@ def run_shopping_episode(context_graph: dict, strategy: dict,
     abandon_map = {"after_1_fail": 1, "after_2_fails": 2, "after_3_fails": 3}
     max_fails = abandon_map.get(strategy["abandon_threshold"], 2)
 
+    # Site registry with real URLs (the "internet" the agent navigates)
+    site_registry = {
+        "zappos": "https://www.zappos.com",
+        "6pm": "https://www.6pm.com",
+        "stockx": "https://stockx.com",
+        "goat": "https://www.goat.com",
+        "nike": "https://www.nike.com",
+        "amazon": "https://www.amazon.com",
+    }
+
     # Build initial prompt for Claude
     initial_message = f"""Run #{run_number}. Your strategy this run:
-- Site: {strategy["site"]}
+- Site: {strategy["site"]} ({site_registry.get(strategy["site"], "")})
 - Query style: {strategy["query_style"]} (broad=generic, moderate=brand+size, specific=brand+size+budget)
 - Filter: {strategy["filter_strategy"]}
 - Abandon after: {max_fails} failure(s)
 
 Available actions:
-- ENTER_STORE [site]: Enter zappos, nike, or amazon
-- SEARCH [query]: Search for products
+- NAVIGATE [url]: Navigate to a shopping site (zappos, 6pm, stockx, goat, nike, amazon)
+- SEARCH [query]: Search for products on current site
 - EVALUATE [product_index]: Evaluate a specific product from search results
 - PURCHASE [product_index]: Attempt to purchase the product
+- ASK_MEMORY [question]: Ask the Memory Agent about past runs (prices, best sites, lessons)
 - ABANDON: Give up on current site, try another
 - DONE: End the run
 
-Current search results will be shown after SEARCH.
+You are browsing the real internet. NAVIGATE loads a real site. SEARCH returns live inventory.
+ASK_MEMORY lets you query past experience before making decisions.
 Start shopping."""
 
     messages = [{"role": "user", "content": initial_message}]
@@ -159,7 +172,8 @@ Start shopping."""
         # Execute the action in the environment
         observation = execute_action(
             action_line, env, prefs, strategy,
-            search_results, current_site, fails, max_fails
+            search_results, current_site, fails, max_fails,
+            memory_agent=memory_agent
         )
 
         # Update state from observation
@@ -204,26 +218,94 @@ Start shopping."""
     }
 
 
+def _handle_memory_query(memory_agent, question: str) -> dict:
+    """
+    Agent-to-Agent Protocol: Shopper Agent queries Memory Agent mid-run.
+    Memory Agent responds with relevant history/insights.
+    This is a real inter-agent communication — not just sequential handoff.
+    """
+    context = memory_agent.get_working_memory()
+    history = context.get("history", [])
+    insights = context.get("learned_insights", [])
+
+    # Build a concise memory response
+    response_parts = []
+
+    # Recent run history
+    if history:
+        last_3 = history[-3:]
+        for h in last_3:
+            response_parts.append(
+                f"Run {h.get('run', '?')}: {h.get('site', '?')} → "
+                f"reward {h.get('reward', 0)} ({h.get('outcome', '?')})"
+            )
+
+    # Learned lessons
+    if insights:
+        response_parts.append(f"Lessons learned: {'; '.join(insights[-3:])}")
+
+    # Best known prices from history
+    best_prices = {}
+    for h in history:
+        if h.get("outcome") == "purchased" and h.get("reward", 0) > 0:
+            site = h.get("site", "?")
+            reward = h.get("reward", 0)
+            if site not in best_prices or reward > best_prices[site]:
+                best_prices[site] = reward
+    if best_prices:
+        response_parts.append(
+            f"Best rewards by site: {', '.join(f'{s}={r}pts' for s, r in best_prices.items())}"
+        )
+
+    if not response_parts:
+        memory_response = "No prior history available. This is an early run."
+    else:
+        memory_response = "\n".join(response_parts)
+
+    return {"message": f"[Memory Agent responds]: {memory_response}"}
+
+
 def execute_action(action: str, env: ShoppingEnvironment, prefs: dict,
                    strategy: dict, search_results: list,
-                   current_site: str, fails: int, max_fails: int) -> dict:
+                   current_site: str, fails: int, max_fails: int,
+                   memory_agent=None) -> dict:
     """
     Translate Claude's action text into environment calls.
     Returns an observation dict.
     """
-    # Strip brackets Claude sometimes adds: "ENTER_STORE [zappos]" → "ENTER_STORE zappos"
+    # Strip brackets Claude sometimes adds: "NAVIGATE [zappos]" → "NAVIGATE zappos"
     action = action.replace("[", "").replace("]", "")
     action_upper = action.upper()
 
-    # ENTER_STORE
-    if action_upper.startswith("ENTER_STORE"):
+    # Site URL registry
+    site_urls = {
+        "zappos": "https://www.zappos.com",
+        "6pm": "https://www.6pm.com",
+        "stockx": "https://stockx.com",
+        "goat": "https://www.goat.com",
+        "nike": "https://www.nike.com",
+        "amazon": "https://www.amazon.com",
+    }
+
+    # NAVIGATE (replaces ENTER_STORE — shows real URLs)
+    if action_upper.startswith("NAVIGATE") or action_upper.startswith("ENTER_STORE"):
         parts = action.split()
         site = parts[1].lower() if len(parts) > 1 else strategy["site"]
+        # Strip .com if user typed it
+        site = site.replace(".com", "").replace("https://", "").replace("www.", "")
         result = env.enter_store(site)
+        url = site_urls.get(site, f"https://{site}.com")
         if result["success"]:
-            return {"site": site, "message": f"Entered {site}. Ready to search."}
+            return {"site": site, "message": f"Navigated to {url} — page loaded. Ready to search."}
         else:
-            return {"failed": True, "message": f"CAPTCHA on {site}. Try another site."}
+            return {"failed": True, "message": f"Blocked by bot detection on {url}. Try another site."}
+
+    # ASK_MEMORY — Agent-to-Agent protocol: Shopper queries Memory Agent mid-run
+    elif action_upper.startswith("ASK_MEMORY"):
+        question = action.replace("ASK_MEMORY", "").strip()
+        if memory_agent:
+            return _handle_memory_query(memory_agent, question)
+        return {"message": "Memory Agent unavailable. Continue shopping."}
 
     # SEARCH
     elif action_upper.startswith("SEARCH"):
@@ -286,7 +368,7 @@ def execute_action(action: str, env: ShoppingEnvironment, prefs: dict,
     elif action_upper.startswith("DONE"):
         return {"message": "Run complete."}
 
-    return {"message": f"Unknown action: {action}. Use ENTER_STORE, SEARCH, EVALUATE, PURCHASE, ABANDON, or DONE."}
+    return {"message": f"Unknown action: {action}. Use NAVIGATE, SEARCH, EVALUATE, PURCHASE, ASK_MEMORY, ABANDON, or DONE."}
 
 
 # --- Test ---
