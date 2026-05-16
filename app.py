@@ -24,7 +24,12 @@ CONTEXT_GRAPH_PATH = Path("context_graph.json")
 RUN_RESULTS_PATH = Path("run_results.json")
 
 # Anthropic client — gracefully handle missing API key (e.g., on Streamlit Cloud)
-_api_key = os.getenv("ANTHROPIC_API_KEY", "") or st.secrets.get("ANTHROPIC_API_KEY", "")
+_api_key = os.getenv("ANTHROPIC_API_KEY", "")
+if not _api_key:
+    try:
+        _api_key = st.secrets["ANTHROPIC_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        _api_key = ""
 client = anthropic.Anthropic(api_key=_api_key) if _api_key else None
 
 # ── Custom CSS ──────────────────────────────────────────────────────────────
