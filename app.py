@@ -25,9 +25,169 @@ RUN_RESULTS_PATH = Path("run_results.json")
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
 
+# ── Custom CSS ──────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+    /* Dark theme overrides */
+    .stApp { background-color: #0e1117; }
+
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1a1f2e 0%, #0e1117 100%);
+        border-right: 1px solid #1e2a3a;
+    }
+
+    /* Card styling */
+    .card {
+        background: linear-gradient(135deg, #1a1f2e 0%, #151922 100%);
+        border: 1px solid #1e2a3a;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    .card-highlight {
+        background: linear-gradient(135deg, #1a2332 0%, #151d2a 100%);
+        border: 1px solid #2563eb33;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    /* Metric cards */
+    div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #1a1f2e 0%, #151922 100%);
+        border: 1px solid #1e2a3a;
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+    div[data-testid="stMetric"] label {
+        color: #8b95a5 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        color: #e2e8f0 !important;
+        font-size: 1.5rem !important;
+        font-weight: 600;
+    }
+
+    /* Hero header */
+    .hero {
+        text-align: center;
+        padding: 40px 20px 30px;
+        margin-bottom: 20px;
+    }
+    .hero h1 {
+        font-size: 2.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+    .hero p {
+        color: #8b95a5;
+        font-size: 1.1rem;
+    }
+
+    /* Section headers */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 24px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #1e2a3a;
+    }
+    .section-header h3 {
+        color: #e2e8f0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    /* Step cards in reasoning trace */
+    .step-card {
+        background: #151922;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 12px 16px;
+        margin: 8px 0;
+    }
+    .step-card-action {
+        background: #151922;
+        border-left: 3px solid #10b981;
+        border-radius: 0 8px 8px 0;
+        padding: 12px 16px;
+        margin: 8px 0;
+    }
+
+    /* Tag pills */
+    .tag {
+        display: inline-block;
+        background: #1e2a3a;
+        color: #60a5fa;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        margin: 2px 4px 2px 0;
+    }
+    .tag-green {
+        background: #0d3320;
+        color: #10b981;
+    }
+    .tag-purple {
+        background: #2d1b4e;
+        color: #a78bfa;
+    }
+    .tag-amber {
+        background: #3d2e0a;
+        color: #fbbf24;
+    }
+
+    /* Payment table */
+    .dataframe { border-radius: 8px !important; }
+
+    /* Chat messages */
+    div[data-testid="stChatMessage"] {
+        border-radius: 12px;
+        border: 1px solid #1e2a3a;
+        margin-bottom: 8px;
+    }
+
+    /* Buttons */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    .stButton > button[kind="secondary"] {
+        border: 1px solid #1e2a3a !important;
+        border-radius: 8px !important;
+    }
+
+    /* Expander */
+    details {
+        border: 1px solid #1e2a3a !important;
+        border-radius: 8px !important;
+        background: #151922 !important;
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px 8px 0 0;
+    }
+    .stTabs [aria-selected="true"] {
+        background: #1a1f2e !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 # ── Session state defaults ──────────────────────────────────────────────────
 if "screen" not in st.session_state:
-    # Auto-detect: if context graph has no history, show onboarding
     if CONTEXT_GRAPH_PATH.exists():
         cg = json.loads(CONTEXT_GRAPH_PATH.read_text())
         has_prefs = cg.get("user", {}).get("preferences", {}).get("brands")
@@ -43,46 +203,75 @@ if "run_progress" not in st.session_state:
     st.session_state.run_progress = []
 
 
-# ── Sidebar navigation ─────────────────────────────────────────────────────
+# ── Sidebar ─────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.title("👟 STRIDE")
-    st.caption("Your AI shopping agent that learns and pays")
+    st.markdown("""
+    <div style="text-align:center; padding: 16px 0;">
+        <div style="font-size: 2.5rem;">👟</div>
+        <div style="font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">STRIDE</div>
+        <div style="color: #8b95a5; font-size: 0.8rem; margin-top: 4px;">AI Shopping Agent</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.divider()
 
     screen = st.radio(
         "Navigate",
         ["onboarding", "run", "results"],
-        format_func=lambda x: {"onboarding": "👤 Setup Preferences", "run": "🏃 Run Agent", "results": "📊 Results Dashboard"}[x],
+        format_func=lambda x: {
+            "onboarding": "👤  Setup Preferences",
+            "run": "🚀  Run Agent",
+            "results": "📊  Results Dashboard",
+        }[x],
         index=["onboarding", "run", "results"].index(st.session_state.screen),
     )
     st.session_state.screen = screen
 
     st.divider()
 
-    # Show current preferences if they exist
+    # Current profile card
     if CONTEXT_GRAPH_PATH.exists():
         cg = json.loads(CONTEXT_GRAPH_PATH.read_text())
         prefs = cg.get("user", {}).get("preferences", {})
         if prefs.get("brands"):
-            st.markdown("**Current Profile**")
-            st.caption(f"Brands: {', '.join(prefs.get('brands', []))}")
-            st.caption(f"Size: {prefs.get('size', '?')}")
-            st.caption(f"Budget: ${prefs.get('budget', '?')}")
-            st.caption(f"Style: {prefs.get('style', '?')}")
+            st.markdown('<div style="color: #8b95a5; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Current Profile</div>', unsafe_allow_html=True)
+
+            brands_html = " ".join(f'<span class="tag">{b}</span>' for b in prefs.get("brands", []))
+            st.markdown(f'{brands_html}', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="margin-top: 12px; line-height: 1.8;">
+                <span class="tag-green tag">Size {prefs.get('size', '?')}</span>
+                <span class="tag-purple tag">${prefs.get('budget', '?')} budget</span>
+                <span class="tag-amber tag">{prefs.get('style', '?')}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
             trust = cg.get("user", {}).get("trust_rules", {})
             st.caption(f"Spend cap: ${trust.get('max_autonomous_spend', '?')}")
 
     st.divider()
-    st.caption("Internet of Agents Hackathon")
-    st.caption("Claude Sonnet 4.6 + Thompson Sampling + x402")
+    st.markdown("""
+    <div style="text-align: center;">
+        <div style="color: #4b5563; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;">Internet of Agents Hackathon</div>
+        <div style="color: #374151; font-size: 0.65rem; margin-top: 4px;">Claude Sonnet 4.6 + Thompson Sampling + x402</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SCREEN 1: ONBOARDING — Chat with Claude to set preferences
+# SCREEN 1: ONBOARDING
 # ══════════════════════════════════════════════════════════════════════════════
 if st.session_state.screen == "onboarding":
-    st.header("👤 Tell your shopping agent about yourself")
-    st.markdown("Chat naturally — the agent will learn your preferences and set up your profile.")
+
+    st.markdown("""
+    <div class="hero">
+        <h1>Welcome to STRIDE</h1>
+        <p>Your AI shopping agent that learns your style, finds the best deals, and pays autonomously.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="section-header"><h3>Chat with your agent to get started</h3></div>', unsafe_allow_html=True)
+    st.caption("Tell STRIDE what you're looking for in natural language. It'll set up your profile automatically.")
 
     SYSTEM_PROMPT = """You are the onboarding assistant for STRIDE, a personal shopping agent.
 Your job: have a friendly conversation to learn the user's shopping preferences.
@@ -103,26 +292,23 @@ PREFERENCES_JSON:
 
 Only output the JSON block when you have ALL fields. Until then, keep chatting."""
 
-    # Display chat history
+    # Chat history
     for msg in st.session_state.chat_history:
-        with st.chat_message(msg["role"]):
+        with st.chat_message(msg["role"], avatar="👟" if msg["role"] == "assistant" else None):
             st.markdown(msg["content"])
 
-    # Show initial greeting if empty
     if not st.session_state.chat_history:
-        greeting = "Hey! I'm your personal shopping agent. I'll learn what you like and find the best deals across the internet. Let's start — what kind of shoes are you looking for?"
+        greeting = "Hey! I'm **STRIDE**, your personal shopping agent. I'll learn what you like and hunt down the best deals across the internet.\n\nWhat kind of shoes are you looking for today?"
         st.session_state.chat_history.append({"role": "assistant", "content": greeting})
         st.rerun()
 
-    # Chat input
     if user_input := st.chat_input("Tell me what you're looking for..."):
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Call Claude
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar="👟"):
             with st.spinner("Thinking..."):
                 messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.chat_history]
                 response = client.messages.create(
@@ -136,16 +322,13 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
             st.markdown(reply)
             st.session_state.chat_history.append({"role": "assistant", "content": reply})
 
-            # Check if preferences were extracted
             if "PREFERENCES_JSON:" in reply:
                 try:
                     json_str = reply.split("PREFERENCES_JSON:")[1].strip()
-                    # Handle case where JSON is followed by more text
                     if "\n\n" in json_str:
                         json_str = json_str.split("\n\n")[0]
                     prefs = json.loads(json_str)
 
-                    # Write to context graph
                     cg = json.loads(CONTEXT_GRAPH_PATH.read_text()) if CONTEXT_GRAPH_PATH.exists() else {"user": {}, "history": [], "learned_insights": []}
                     cg["user"]["preferences"] = {
                         "brands": prefs["brands"],
@@ -160,14 +343,14 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
                         "require_approval_first_n_runs": 3,
                     }
                     CONTEXT_GRAPH_PATH.write_text(json.dumps(cg, indent=2))
-
                     st.session_state.preferences_extracted = True
                     st.success("Profile saved! Head to **Run Agent** to start shopping.")
                 except (json.JSONDecodeError, KeyError, IndexError):
-                    pass  # Claude didn't output valid JSON yet, keep chatting
+                    pass
 
-    # Quick setup option
-    with st.expander("Or quick setup (skip chat)"):
+    # Quick setup
+    st.markdown("")
+    with st.expander("Quick setup (skip chat)"):
         with st.form("quick_setup"):
             col1, col2 = st.columns(2)
             with col1:
@@ -181,30 +364,25 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
 
             if st.form_submit_button("Save Profile", type="primary"):
                 cg = json.loads(CONTEXT_GRAPH_PATH.read_text()) if CONTEXT_GRAPH_PATH.exists() else {"user": {}, "history": [], "learned_insights": []}
-                cg["user"]["preferences"] = {
-                    "brands": brands,
-                    "size": size,
-                    "budget": budget,
-                    "max_delivery_days": max_days,
-                    "style": style,
-                }
-                cg["user"]["trust_rules"] = {
-                    "max_autonomous_spend": spend_cap,
-                    "approved_categories": ["footwear"],
-                    "require_approval_first_n_runs": 3,
-                }
+                cg["user"]["preferences"] = {"brands": brands, "size": size, "budget": budget, "max_delivery_days": max_days, "style": style}
+                cg["user"]["trust_rules"] = {"max_autonomous_spend": spend_cap, "approved_categories": ["footwear"], "require_approval_first_n_runs": 3}
                 CONTEXT_GRAPH_PATH.write_text(json.dumps(cg, indent=2))
                 st.success("Profile saved! Head to **Run Agent** to start shopping.")
                 st.session_state.preferences_extracted = True
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SCREEN 2: RUN AGENT — Execute shopping loop
+# SCREEN 2: RUN AGENT
 # ══════════════════════════════════════════════════════════════════════════════
 elif st.session_state.screen == "run":
-    st.header("🏃 Run Shopping Agent")
 
-    # Check prerequisites
+    st.markdown("""
+    <div class="hero">
+        <h1>Launch STRIDE</h1>
+        <p>Your agent will search real websites, compare products, and pay via x402 on Base Sepolia.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     if not CONTEXT_GRAPH_PATH.exists():
         st.warning("Set up your preferences first in the **Setup Preferences** tab.")
         st.stop()
@@ -217,55 +395,68 @@ elif st.session_state.screen == "run":
     prefs = cg["user"]["preferences"]
     trust = cg["user"]["trust_rules"]
 
-    # Show what the agent knows
-    st.markdown("**Your agent knows:**")
+    # Agent knowledge cards
+    st.markdown('<div class="section-header"><h3>Agent Knowledge</h3></div>', unsafe_allow_html=True)
+
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Brands", ", ".join(prefs.get("brands", [])))
     col2.metric("Size", prefs.get("size", "?"))
     col3.metric("Budget", f"${prefs.get('budget', '?')}")
     col4.metric("Spend Cap", f"${trust.get('max_autonomous_spend', '?')}")
 
-    st.divider()
+    st.markdown("")
+
+    # Architecture visual
+    st.markdown("""
+    <div class="card" style="text-align: center; padding: 24px;">
+        <div style="color: #8b95a5; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;">Agent Pipeline</div>
+        <div style="font-size: 1rem; color: #e2e8f0; line-height: 2;">
+            <span class="tag">Memory Agent</span> &rarr;
+            <span class="tag-purple tag">RL Bandit</span> &rarr;
+            <span class="tag-amber tag">Auth Agent</span> &rarr;
+            <span class="tag">Claude Sonnet 4.6</span> &rarr;
+            <span class="tag-green tag">x402 Payment</span> &rarr;
+            <span class="tag-purple tag">Reflexion</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     col_run, col_load = st.columns(2)
 
     with col_run:
+        st.markdown('<div class="card-highlight">', unsafe_allow_html=True)
         num_runs = st.slider("Number of episodes", min_value=3, max_value=10, value=10)
-        if st.button("▶ Run Agent Live", type="primary", use_container_width=True):
+        if st.button("🚀 Run Agent Live", type="primary", use_container_width=True):
             progress_bar = st.progress(0, text="Starting...")
-            results_container = st.container()
-
             try:
                 from run_loop import run_full_loop
-
-                # We can't easily stream run_loop, so run all and display after
-                with st.spinner(f"Running {num_runs} episodes — agent is shopping across real websites..."):
+                with st.spinner(f"Running {num_runs} episodes — STRIDE is shopping across real websites..."):
                     results = run_full_loop(total_runs=num_runs)
-
                 st.session_state.results = results
                 progress_bar.progress(100, text="Complete!")
-                st.success(f"Done! {num_runs} episodes completed. Go to **Results Dashboard** to see the learning curve.")
-
+                st.success(f"Done! {num_runs} episodes completed. Go to **Results Dashboard**.")
             except Exception as e:
                 st.error(f"Run failed: {e}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col_load:
-        st.markdown("**Or load previous results:**")
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("**Load previous results**")
+        st.caption("View results from the last run without re-running.")
         if st.button("📂 Load from run_results.json", use_container_width=True):
             if RUN_RESULTS_PATH.exists():
                 st.session_state.results = json.loads(RUN_RESULTS_PATH.read_text())
-                st.success(f"Loaded {len(st.session_state.results)} runs. Go to **Results Dashboard**.")
+                st.success(f"Loaded {len(st.session_state.results)} runs.")
             else:
-                st.error("No run_results.json found. Run the agent first.")
+                st.error("No run_results.json found.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SCREEN 3: RESULTS DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
 elif st.session_state.screen == "results":
-    st.header("📊 Results Dashboard")
 
-    # Load results
     results = st.session_state.get("results")
     if not results and RUN_RESULTS_PATH.exists():
         results = json.loads(RUN_RESULTS_PATH.read_text())
@@ -275,58 +466,65 @@ elif st.session_state.screen == "results":
         st.info("No results yet. Run the agent first in the **Run Agent** tab.")
         st.stop()
 
-    # ── Top metrics ─────────────────────────────────────────────────────────
+    # Hero
     first = results[0]["reward"]
     last = results[-1]["reward"]
     best_run = max(results, key=lambda r: r["reward"])
+    improvement = last - first
 
+    st.markdown(f"""
+    <div class="hero">
+        <h1>STRIDE Results</h1>
+        <p>{'Agent improved by ' + str(improvement) + '+ points across ' + str(len(results)) + ' runs' if improvement > 0 else str(len(results)) + ' shopping episodes completed'}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Top metrics
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Run 1", f"{first} pts")
-    col2.metric(f"Run {len(results)}", f"{last} pts", delta=f"{last - first:+} pts")
+    col2.metric(f"Run {len(results)}", f"{last} pts", delta=f"{improvement:+} pts")
     col3.metric("Best Run", f"Run {best_run['run']} ({best_run['reward']} pts)")
     col4.metric("Success Rate", f"{sum(1 for r in results if r['outcome'] == 'purchased')}/{len(results)}")
 
-    st.divider()
+    st.markdown("")
 
-    # ── Component 1: Reward Curve ───────────────────────────────────────────
-    st.subheader("📈 Reward Curve")
-    st.caption("Watch the agent get smarter — Thompson Sampling learns which strategies work")
+    # ── Reward Curve ────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header"><h3>📈 Reward Curve</h3></div>', unsafe_allow_html=True)
+    st.caption("Thompson Sampling learns which site + strategy combo works best for you")
 
-    reward_df = pd.DataFrame({
-        "Run": [r["run"] for r in results],
-        "Reward": [r["reward"] for r in results],
-    })
-    st.line_chart(reward_df, x="Run", y="Reward", height=300)
+    reward_df = pd.DataFrame({"Run": [r["run"] for r in results], "Reward": [r["reward"] for r in results]})
+    st.line_chart(reward_df, x="Run", y="Reward", height=350, color="#60a5fa")
 
     with st.expander("Reward breakdown (latest run)"):
         breakdown = results[-1].get("reward_breakdown", {})
         if breakdown:
-            bd_df = pd.DataFrame({
-                "Component": list(breakdown.keys()),
-                "Points": list(breakdown.values()),
-            })
+            bd_df = pd.DataFrame({"Component": list(breakdown.keys()), "Points": list(breakdown.values())})
             st.bar_chart(bd_df, x="Component", y="Points", height=250)
 
-    st.divider()
+    st.markdown("")
 
-    # ── Component 2: Reasoning Trace ────────────────────────────────────────
-    st.subheader("🧠 Reasoning Trace")
-    st.caption("Claude Sonnet 4.6 ReAct loop — watch the agent think, act, and observe")
+    # ── Reasoning Trace ─────────────────────────────────────────────────────
+    st.markdown('<div class="section-header"><h3>🧠 Reasoning Trace</h3></div>', unsafe_allow_html=True)
+    st.caption("Watch Claude Sonnet 4.6 think, act, and learn step by step")
 
     selected_run = st.selectbox(
         "Select run",
         options=[r["run"] for r in results],
-        format_func=lambda x: f"Run {x} — {results[x-1]['reward']} pts ({results[x-1]['outcome']}) — {results[x-1]['strategy']['site']}",
+        format_func=lambda x: f"Run {x}  |  {results[x-1]['reward']} pts  |  {results[x-1]['outcome']}  |  {results[x-1]['strategy']['site']}",
     )
 
     run_data = results[selected_run - 1]
-
-    # Strategy
     strat = run_data["strategy"]
-    st.markdown(
-        f"**Strategy:** site=`{strat['site']}` · query=`{strat['query_style']}` · "
-        f"filter=`{strat['filter_strategy']}` · abandon=`{strat['abandon_threshold']}`"
-    )
+
+    # Strategy tags
+    st.markdown(f"""
+    <div style="margin: 12px 0;">
+        <span class="tag">🌐 {strat['site']}</span>
+        <span class="tag-purple tag">🔍 {strat['query_style']}</span>
+        <span class="tag-amber tag">📊 {strat['filter_strategy']}</span>
+        <span class="tag-green tag">🚪 {strat['abandon_threshold']}</span>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Product bought
     product = run_data.get("product")
@@ -334,12 +532,29 @@ elif st.session_state.screen == "results":
         p_name = product.get("name", "?")
         p_price = product.get("price", "?")
         p_brand = product.get("brand", "?")
-        live = " (LIVE)" if product.get("live") else ""
-        st.success(f"Bought: **{p_name}** — ${p_price} — {p_brand}{live}")
+        live = "LIVE" if product.get("live") else "SIM"
+        st.markdown(f"""
+        <div class="card-highlight" style="display: flex; align-items: center; gap: 16px;">
+            <div style="font-size: 2rem;">👟</div>
+            <div>
+                <div style="color: #e2e8f0; font-weight: 600; font-size: 1.1rem;">{p_name}</div>
+                <div style="color: #8b95a5; margin-top: 4px;">
+                    <span class="tag-green tag">${p_price}</span>
+                    <span class="tag">{p_brand}</span>
+                    <span class="tag-purple tag">{live}</span>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Lesson
+    # Reflexion lesson
     if run_data.get("lesson"):
-        st.info(f"**Reflexion:** {run_data['lesson']}")
+        st.markdown(f"""
+        <div class="card" style="border-left: 3px solid #a78bfa;">
+            <div style="color: #a78bfa; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Reflexion Lesson</div>
+            <div style="color: #e2e8f0; margin-top: 8px;">{run_data['lesson']}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Trace steps
     trace = run_data.get("reasoning_trace", [])
@@ -348,21 +563,30 @@ elif st.session_state.screen == "results":
         thought = step.get("thought", "")
         action = step.get("action", "")
 
-        with st.container():
-            st.markdown(f"**Step {step_num}**")
-            if thought:
-                st.markdown(f"💭 *{thought}*")
-            if action:
-                st.code(action, language=None)
+        if thought:
+            st.markdown(f"""
+            <div class="step-card">
+                <div style="color: #60a5fa; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Step {step_num} — Thought</div>
+                <div style="color: #cbd5e1; margin-top: 6px; font-size: 0.9rem;">{thought}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.divider()
+        if action:
+            st.markdown(f"""
+            <div class="step-card-action">
+                <div style="color: #10b981; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">Step {step_num} — Action</div>
+                <code style="color: #e2e8f0; font-size: 0.9rem;">{action}</code>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # ── Component 3: Bandit Weights ─────────────────────────────────────────
-    st.subheader("🎰 Thompson Sampling Bandit Weights")
+    st.markdown("")
+
+    # ── Bandit Weights ──────────────────────────────────────────────────────
+    st.markdown('<div class="section-header"><h3>🎰 Thompson Sampling Evolution</h3></div>', unsafe_allow_html=True)
     st.caption("How the 4 independent bandits shift their preferences across runs")
 
     dimensions = ["site", "query_style", "filter_strategy", "abandon_threshold"]
-    tabs = st.tabs([d.replace("_", " ").title() for d in dimensions])
+    tabs = st.tabs(["🌐 Site", "🔍 Query Style", "📊 Filter Strategy", "🚪 Abandon Threshold"])
 
     for tab, dim in zip(tabs, dimensions):
         with tab:
@@ -371,24 +595,23 @@ elif st.session_state.screen == "results":
                 weights = r.get("bandit_weights", {}).get(dim, {})
                 for arm, weight in weights.items():
                     rows.append({"Run": r["run"], "Arm": arm, "Weight": weight})
-
             if rows:
                 df = pd.DataFrame(rows)
                 pivot = df.pivot(index="Run", columns="Arm", values="Weight")
-                st.line_chart(pivot, height=250)
+                st.line_chart(pivot, height=280)
 
-    st.divider()
+    st.markdown("")
 
-    # ── Component 4: Payment Log ────────────────────────────────────────────
-    st.subheader("💳 Payment Log (x402)")
-    st.caption("On-chain transaction confirmations on Base Sepolia")
+    # ── Payment Log ─────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header"><h3>💳 Payment Log (x402 on Base Sepolia)</h3></div>', unsafe_allow_html=True)
+    st.caption("Real on-chain USDC transactions — click tx hash to verify on BaseScan")
 
     payment_rows = []
     for r in results:
         pay = r.get("payment", {})
         prod = r.get("product") or {}
         tx = pay.get("transaction_hash", "")
-        tx_display = tx[:10] + "..." if tx and tx != "—" else "—"
+        tx_display = tx[:16] + "..." if tx and tx != "—" else "—"
 
         payment_rows.append({
             "Run": r["run"],
@@ -396,33 +619,48 @@ elif st.session_state.screen == "results":
             "Price": f"${prod.get('price', 0)}" if prod.get("price") else "—",
             "Status": "✅ Paid" if pay.get("success") else "❌ " + str(pay.get("reason", "Failed"))[:40],
             "Protocol": pay.get("protocol", "—"),
-            "Confirmation": pay.get("confirmation_id", "—"),
             "Tx Hash": tx_display,
         })
 
     pay_df = pd.DataFrame(payment_rows)
     st.dataframe(pay_df, use_container_width=True, hide_index=True)
 
+    st.markdown("")
+
     # ── Agent UX Endpoints ──────────────────────────────────────────────────
-    st.divider()
-    st.subheader("🌐 Agent UX Endpoints")
-    st.caption("These endpoints let any external agent interact with this system — UX for the Internet of Agents")
+    st.markdown('<div class="section-header"><h3>🌐 Agent UX Endpoints</h3></div>', unsafe_allow_html=True)
+    st.caption("Any external agent can discover and interact with STRIDE via these APIs")
 
-    ep_col1, ep_col2, ep_col3 = st.columns(3)
-    with ep_col1:
-        st.markdown("**`GET /agent-profile`**")
-        st.caption("Who is the user? What are they allowed to do? What has the system learned?")
-    with ep_col2:
-        st.markdown("**`GET /agent-capabilities`**")
-        st.caption("What actions are available? API contract for each endpoint.")
-    with ep_col3:
-        st.markdown("**`POST /purchase`**")
-        st.caption("Buy a product via x402 USDC payment on Base Sepolia.")
+    ep1, ep2, ep3 = st.columns(3)
+    with ep1:
+        st.markdown("""
+        <div class="card" style="text-align: center; min-height: 120px;">
+            <div style="font-size: 1.5rem; margin-bottom: 8px;">👤</div>
+            <div style="color: #e2e8f0; font-weight: 600;">GET /agent-profile</div>
+            <div style="color: #8b95a5; font-size: 0.8rem; margin-top: 4px;">User preferences, trust rules, learned RL weights</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with ep2:
+        st.markdown("""
+        <div class="card" style="text-align: center; min-height: 120px;">
+            <div style="font-size: 1.5rem; margin-bottom: 8px;">🗺️</div>
+            <div style="color: #e2e8f0; font-weight: 600;">GET /agent-capabilities</div>
+            <div style="color: #8b95a5; font-size: 0.8rem; margin-top: 4px;">API contract for all endpoints — sitemap for agents</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with ep3:
+        st.markdown("""
+        <div class="card" style="text-align: center; min-height: 120px;">
+            <div style="font-size: 1.5rem; margin-bottom: 8px;">💰</div>
+            <div style="color: #e2e8f0; font-weight: 600;">POST /purchase</div>
+            <div style="color: #8b95a5; font-size: 0.8rem; margin-top: 4px;">x402 USDC payment on Base Sepolia</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    if st.button("Test /agent-profile"):
+    if st.button("🔌 Test /agent-profile (live)"):
         try:
             import httpx
             resp = httpx.get("http://localhost:4021/agent-profile", timeout=5)
             st.json(resp.json())
         except Exception:
-            st.warning("x402 server not running. Start it with: `uv run python x402_server.py`")
+            st.warning("x402 server not running. Start with: `uv run python x402_server.py`")
