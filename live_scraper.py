@@ -80,13 +80,17 @@ def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
 
 
 def _parse_stockx(text: str) -> list[dict]:
-    """Parse StockX: 'Product Name Lowest Ask $PRICE'"""
+    """Parse StockX: '[Product Name Lowest Ask $PRICE](https://stockx.com/...)'"""
     products = []
-    # Match product names (must start with a letter, no URLs/image junk)
-    pattern = re.compile(r'([A-Za-z][A-Za-z0-9 \'"&-]{5,80}?) Lowest Ask \$(\d+)', re.IGNORECASE)
+    # Jina markdown: [Product Name Lowest Ask $PRICE](url)
+    pattern = re.compile(
+        r'\[([A-Za-z][A-Za-z0-9 \'"&-]{5,80}?) Lowest Ask \$(\d+)[^\]]*\]'
+        r'\((https://[^\)]+)\)',
+        re.IGNORECASE
+    )
     seen = set()
     for m in pattern.finditer(text):
-        name, price_str = m.groups()
+        name, price_str, url = m.groups()
         name = name.strip()
         if name in seen:
             continue
@@ -102,7 +106,7 @@ def _parse_stockx(text: str) -> list[dict]:
             "price": float(price_str),
             "rating": 4.5,
             "brand": brand,
-            "url": "",
+            "url": url,
         })
         if len(products) >= 6:
             break
@@ -110,13 +114,18 @@ def _parse_stockx(text: str) -> list[dict]:
 
 
 def _parse_goat(text: str) -> list[dict]:
-    """Parse GOAT: '[Product Name $PRICE ![Image'"""
+    """Parse GOAT: '[Product Name $PRICE ![Image](img)](https://goat.com/...)'"""
     products = []
-    # Match any product with a price — not limited to Nike
-    pattern = re.compile(r'\[([^\]]{5,80}?) \$(\d+) !\[', re.IGNORECASE)
+    # Jina markdown: [Product Name $PRICE ![...](img)](url)
+    # The URL comes after the closing ] of the outer link text
+    pattern = re.compile(
+        r'\[([^\]]{5,80}?) \$(\d+) !\[[^\]]*\]\([^\)]*\)\]'
+        r'\((https://[^\)]+)\)',
+        re.IGNORECASE
+    )
     seen = set()
     for m in pattern.finditer(text):
-        raw_name, price_str = m.groups()
+        raw_name, price_str, url = m.groups()
         # Clean trailing date fragments
         name = re.sub(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d*\s*$', '', raw_name).strip()
         name = re.sub(r'\s*\d{4}\s*$', '', name).strip()
@@ -134,7 +143,7 @@ def _parse_goat(text: str) -> list[dict]:
             "price": float(price_str),
             "rating": 4.5,
             "brand": brand,
-            "url": "",
+            "url": url,
         })
         if len(products) >= 6:
             break
@@ -157,7 +166,7 @@ def _claude_extract(raw: str) -> list[dict]:
     return json.loads(raw_json)
 
 
-EXTRACT_PROMPT = """Extract up to 5 sneaker products from this webpage content.
+EXTRACT_PROMPT = """Extract up to 5 sneaker products from this webpage content (Jina.ai markdown).
 Return ONLY a valid JSON array, no other text, no markdown.
 Each product must have: name, price (float), rating (float 1-5), brand, url
 
@@ -165,7 +174,8 @@ Rules:
 - Only include products with a clear numeric price
 - brand must be one of: Nike, Adidas, New Balance, HOKA, Brooks, Asics, Reebok
 - Skip products with no price or no rating
-- urls should be full absolute URLs
+- URLs are in markdown link format: [Product Name](https://...) — extract the full URL from the parentheses
+- If no URL is available for a product, use "" (empty string) — never make up URLs
 
 Content:
 {content}
