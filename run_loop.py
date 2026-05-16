@@ -89,7 +89,7 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
     all_results = []
 
     print("\n" + "🛒 " * 20)
-    print("MERCHANT COPILOT — RL SHOPPING AGENT")
+    print("STRIDE — RL SHOPPING AGENT")
     print(f"Running {total_runs} episodes. Watch the reward curve climb.")
     print("🛒 " * 20 + "\n")
 
