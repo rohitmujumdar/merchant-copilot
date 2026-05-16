@@ -1,0 +1,23 @@
+{
+  "user": {
+    "preferences": {
+      "brands": ["Nike", "Adidas"],
+      "size": 10,
+      "budget": 120,
+      "max_delivery_days": 2,
+      "style": "running"
+    },
+    "patterns": {
+      "buys_on_discount": true,
+      "prefers_top_rated": true,
+      "brand_loyalty": "Nike"
+    },
+    "trust_rules": {
+      "max_autonomous_spend": 150,
+      "approved_categories": ["footwear"],
+      "require_approval_first_n_runs": 3
+    }
+  },
+  "history": [],
+  "learned_insights": []
+}
