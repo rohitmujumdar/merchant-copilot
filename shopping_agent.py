@@ -44,12 +44,18 @@ RULES:
 - Be efficient — fewer steps = better reward
 
 You will be given a strategy to follow and a list of available actions.
-Think step by step. For each step output exactly:
+
+CRITICAL FORMAT RULE: Each response must contain EXACTLY one Thought + one Action, then STOP.
+The system will call the action and return an Observation. Never write "Observation:" yourself.
+
+Format:
 Thought: <your reasoning>
 Action: <one action from the available list>
 
-Wait for the Observation before taking the next action.
-When done output:
+STOP HERE. Do not write Observation. Do not write the next Thought.
+Wait for the system to call your action and return an Observation.
+
+When the task is complete, output:
 Done: <outcome summary>"""
 
 
@@ -109,10 +115,11 @@ Start shopping."""
 
     for step in range(max_steps):
 
-        # Call Claude
+        # Call Claude — stop before it hallucinates its own Observation
         response = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=600,
+            stop_sequences=["Observation:", "observation:"],
             system=build_system_prompt(context_graph, history_summary),
             messages=messages,
         )
