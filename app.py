@@ -23,7 +23,9 @@ st.set_page_config(page_title="STRIDE", page_icon="🛒", layout="wide")
 CONTEXT_GRAPH_PATH = Path("context_graph.json")
 RUN_RESULTS_PATH = Path("run_results.json")
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+# Anthropic client — gracefully handle missing API key (e.g., on Streamlit Cloud)
+_api_key = os.getenv("ANTHROPIC_API_KEY", "") or st.secrets.get("ANTHROPIC_API_KEY", "")
+client = anthropic.Anthropic(api_key=_api_key) if _api_key else None
 
 # ── Custom CSS ──────────────────────────────────────────────────────────────
 st.markdown("""
@@ -303,6 +305,10 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
         st.rerun()
 
     if user_input := st.chat_input("Tell me what you're looking for..."):
+        if not client:
+            st.error("No API key configured. Add ANTHROPIC_API_KEY to Streamlit secrets or .env file.")
+            st.stop()
+
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         with st.chat_message("user"):
