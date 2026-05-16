@@ -265,8 +265,10 @@ class ShoppingEnvironment:
         self._step("evaluate", product["name"])
         score = {"product": product, "matches": [], "misses": []}
 
-        # Brand match
-        if product["brand"] in preferences.get("brands", []):
+        # Brand match (case-insensitive for live data)
+        product_brand = product["brand"].lower()
+        pref_brands = [b.lower() for b in preferences.get("brands", [])]
+        if product_brand in pref_brands:
             score["matches"].append("brand")
         else:
             score["misses"].append("brand")
