@@ -14,6 +14,9 @@ import json
 import os
 import uuid
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # ---------------------------------------------------------------------------
