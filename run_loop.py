@@ -57,9 +57,30 @@ Write only the lesson, no preamble."""
     return response.content[0].text.strip()
 
 
+RUN_RESULTS_SCHEMA_VERSION = "1.0"
+"""
+Schema for run_results.json (FROZEN — v1.0):
+  Each element: {
+    "run": int,
+    "strategy": {"site": str, "query_style": str, "filter_strategy": str, "abandon_threshold": str},
+    "reward": int,
+    "reward_breakdown": {"event_name": int, ...},
+    "steps": int,
+    "outcome": str,       # "purchased" | "found_not_purchased" | "not_found"
+    "product": dict|null, # {"name", "brand", "price", "rating", "sizes", ...}
+    "payment": dict,      # {"success": bool, ...}
+    "reasoning_trace": [{"step": int, "thought": str, "action": str}, ...],
+    "bandit_weights": {"site": {...}, "query_style": {...}, ...},
+    "lesson": str
+  }
+Do NOT rename/remove fields without bumping the version.
+"""
+
+
 def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
     """
     Run all episodes. Returns list of results for dashboard.
+    Output schema: see RUN_RESULTS_SCHEMA_VERSION above.
     """
     memory = MemoryAgent()
     bandit = RLAgent()

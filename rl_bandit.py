@@ -78,7 +78,7 @@ class RLAgent:
     which shopping strategy works best across runs.
     """
 
-    MAX_REWARD = 75.0  # theoretical max single-run reward
+    MAX_REWARD = 115.0  # theoretical max: 40+25+10+15+10+15(bonus) - 4*4(steps) = 99
 
     def __init__(self):
         self.bandits = {

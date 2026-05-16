@@ -16,6 +16,22 @@ from pathlib import Path
 
 CONTEXT_GRAPH_PATH = "context_graph.json"
 
+CONTEXT_GRAPH_SCHEMA_VERSION = "1.0"
+"""
+Schema for context_graph.json (FROZEN — v1.0):
+{
+  "user": {
+    "preferences": {"brands": [str], "size": int, "budget": int, "max_delivery_days": int, "style": str},
+    "trust_rules": {"max_autonomous_spend": int, "approved_categories": [str], "require_approval_first_n_runs": int}
+  },
+  "cohort": str,
+  "rl_weights": {"site": {...}, "query_style": {...}, ...},
+  "history": [{"run": int, "timestamp": str, "strategy": dict, "reward": float, "outcome": str}],
+  "learned_insights": [{"run": int, "lesson": str}]   ← always dicts, not plain strings
+}
+Do NOT rename/remove fields without bumping the version.
+"""
+
 # --- Cohort Priors ---
 # New users have no history. We assign them a starting strategy
 # based on their stated preferences. The RL bandit refines from there.

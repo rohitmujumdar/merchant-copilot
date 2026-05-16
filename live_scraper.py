@@ -188,14 +188,17 @@ def scrape_real_products(site: str, size: int = 10, budget: int = 120) -> list[d
         return []
 
     # Normalize to environment.py format
+    # Brand normalization: title-case so "adidas" → "Adidas", "nike" → "Nike"
     normalized = []
     for p in products[:5]:
         try:
+            raw_brand = p.get("brand", "Unknown")
+            brand = raw_brand.title() if raw_brand.lower() in ("nike", "adidas", "hoka", "asics", "reebok", "brooks") else raw_brand
             normalized.append({
                 "name": p["name"],
                 "price": float(p["price"]),
                 "rating": float(p.get("rating", 4.0)),
-                "brand": p.get("brand", "Unknown"),
+                "brand": brand,
                 "sizes": [size],  # Real scraping would check size availability
                 "delivery_days": 2,
                 "in_stock": True,

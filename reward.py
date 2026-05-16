@@ -3,26 +3,32 @@ Reward function for the RL Shopping Agent.
 
 Calculates a score for each shopping run based on what the agent achieved.
 This is the "scorecard" that the RL bandits learn from.
+
+Reward design: wider spread so the bandit's learning is visible on the curve.
+- Perfect run (buy right product, few steps): ~90-100 pts
+- Good run (buy, moderate steps): ~60-75 pts
+- Mediocre run (buy after detours): ~30-50 pts
+- Failed run (no purchase): ~0-20 pts
 """
 
 
 REWARD_TABLE = {
-    # Positive outcomes
-    "purchase_completed":     25,
-    "item_found_full_match":  20,
-    "checkout_reached":       15,
-    "under_budget":           10,
-    "fast_delivery":           5,
-    "item_found_partial":     10,
+    # Positive outcomes (larger bonuses → wider spread)
+    "purchase_completed":     40,
+    "item_found_full_match":  25,
+    "checkout_reached":       10,
+    "under_budget":           15,
+    "fast_delivery":          10,
+    "item_found_partial":      5,
 
-    # Negative outcomes
-    "captcha_blocked":       -10,
-    "out_of_stock":          -15,
-    "over_budget":            -5,
-    "wrong_size":             -8,
+    # Negative outcomes (harsher penalties → bad strategies score low)
+    "captcha_blocked":       -15,
+    "out_of_stock":          -20,
+    "over_budget":           -10,
+    "wrong_size":            -12,
 
-    # Efficiency
-    "per_step_penalty":       -2,
+    # Efficiency (steeper penalty so long detours really hurt)
+    "per_step_penalty":       -4,
 }
 
 
@@ -43,9 +49,15 @@ def calculate_reward(events: list[str], steps: int) -> dict:
         if event in REWARD_TABLE:
             breakdown[event] = REWARD_TABLE[event]
 
-    # Step penalty
+    # Step penalty — steeper so efficient runs clearly win
     step_cost = steps * REWARD_TABLE["per_step_penalty"]
     breakdown["step_penalty"] = step_cost
+
+    # Efficiency bonus: reward fast completions (≤4 steps = bonus)
+    if steps <= 4 and "purchase_completed" in events:
+        breakdown["efficiency_bonus"] = 15
+    elif steps <= 6 and "purchase_completed" in events:
+        breakdown["efficiency_bonus"] = 8
 
     total = sum(breakdown.values())
 

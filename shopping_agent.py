@@ -242,7 +242,8 @@ def _handle_memory_query(memory_agent, question: str) -> dict:
 
     # Learned lessons
     if insights:
-        response_parts.append(f"Lessons learned: {'; '.join(insights[-3:])}")
+        insight_strs = [i if isinstance(i, str) else i.get("lesson", str(i)) for i in insights[-3:]]
+        response_parts.append(f"Lessons learned: {'; '.join(insight_strs)}")
 
     # Best known prices from history
     best_prices = {}
