@@ -522,10 +522,18 @@ elif st.session_state.screen == "results":
                     live = prod.get("live", False)
                     url = prod.get("url", "")
 
-                    # Generate search URL if no direct URL
+                    # Generate search URL on the actual site if no direct URL
                     if not url:
-                        search_name = name.replace(" ", "+")
-                        url = f"https://www.google.com/search?q={search_name}+sneakers&tbm=shop"
+                        search_name = name.replace(" ", "+").replace("'", "")
+                        site_search = {
+                            "goat": f"https://www.goat.com/search?query={search_name}",
+                            "stockx": f"https://stockx.com/search?s={search_name}",
+                            "amazon": f"https://www.amazon.com/s?k={search_name}",
+                            "nike": f"https://www.nike.com/w?q={search_name}",
+                            "zappos": f"https://www.zappos.com/search?term={search_name}",
+                            "6pm": f"https://www.6pm.com/search?term={search_name}",
+                        }
+                        url = site_search.get(site, f"https://www.google.com/search?q={search_name}+sneakers&tbm=shop")
 
                     # Generate image search URL for thumbnail
                     img_search = name.replace(" ", "+")
