@@ -37,7 +37,8 @@ USER PREFERENCES (never violate these):
 {history_summary}
 
 RULES:
-- Only shop on approved sites: Zappos, Nike, Amazon
+- Only shop on approved sites: Zappos, 6pm, Nike, Amazon
+- 6pm is a legitimate discount shoe site (owned by Zappos/Amazon)
 - Never buy the wrong size
 - Never exceed budget
 - Abandon a site if you hit a CAPTCHA or dead end

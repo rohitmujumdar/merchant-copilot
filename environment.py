@@ -11,6 +11,14 @@ Amazon: Widest selection but more CAPTCHAs, variable quality, fastest shipping
 
 import random
 
+# ── Live mode toggle ───────────────────────────────────────────────────────────
+# Set True to pull real product data from Zappos / 6pm via Jina.ai reader.
+# Nike and Amazon fall back to simulation (JS-heavy / bot-blocked).
+LIVE_MODE = True
+LIVE_SITES = {"zappos", "6pm"}   # sites that scrape reliably
+
+_live_cache: dict = {}  # cache per site per run so we don't re-fetch mid-episode
+
 
 # --- Product Catalogs ---
 
@@ -46,20 +54,30 @@ AMAZON_CATALOG = [
 STORES = {
     "zappos": {
         "catalog": ZAPPOS_CATALOG,
-        "captcha_rate": 0.05,      # 5% chance of CAPTCHA
-        "search_noise": 0.1,       # 10% chance of returning irrelevant results
+        "captcha_rate": 0.05,
+        "search_noise": 0.1,
+        "live_url": "https://www.zappos.com/search?term=nike+adidas+running+sneakers+men",
         "strengths": "Best brand selection, reliable size availability",
+    },
+    "6pm": {
+        "catalog": ZAPPOS_CATALOG,   # similar catalog (both Zappos-owned)
+        "captcha_rate": 0.05,
+        "search_noise": 0.1,
+        "live_url": "https://www.6pm.com/mens-athletic-shoes",
+        "strengths": "Discounted Zappos inventory, good for deals",
     },
     "nike": {
         "catalog": NIKE_CATALOG,
-        "captcha_rate": 0.1,       # 10% chance
-        "search_noise": 0.05,      # very clean search (it's their own store)
+        "captcha_rate": 0.1,
+        "search_noise": 0.05,
+        "live_url": None,           # JS-heavy, use simulation
         "strengths": "Cheapest Nike prices, but Nike-only and slower shipping",
     },
     "amazon": {
         "catalog": AMAZON_CATALOG,
-        "captcha_rate": 0.2,       # 20% chance — Amazon hates bots
-        "search_noise": 0.15,      # more junk results
+        "captcha_rate": 0.2,
+        "search_noise": 0.15,
+        "live_url": None,           # Bot-blocked, use simulation
         "strengths": "Fastest shipping, widest selection, but more CAPTCHAs",
     },
 }
@@ -172,13 +190,61 @@ class ShoppingEnvironment:
 
     def search_products(self, store_name: str, query_style: str,
                         preferences: dict) -> list[dict]:
-        """Search for products in a store."""
+        """Search for products. Uses live scraping for supported sites, simulation otherwise."""
         self._step("search", f"{store_name} ({query_style})")
+
+        if LIVE_MODE and store_name in LIVE_SITES:
+            results = self._search_live(store_name, preferences)
+            if results:
+                print(f"[LiveMode] {store_name}: {len(results)} real products fetched")
+                if not results:
+                    self.events.append("out_of_stock")
+                return results
+            print(f"[LiveMode] {store_name}: scrape failed, falling back to simulation")
+
+        # Simulation fallback
         store = self.stores[store_name]
         results = store.search(query_style, preferences)
         if not results:
             self.events.append("out_of_stock")
         return results
+
+    def _search_live(self, store_name: str, preferences: dict) -> list[dict]:
+        """
+        Fetch real products via Jina.ai reader.
+        Results are cached so a single episode doesn't re-fetch.
+        Normalizes to environment.py product format.
+        """
+        if store_name in _live_cache:
+            return _live_cache[store_name]
+
+        try:
+            from live_scraper import scrape_real_products
+            size = preferences.get("size", 10)
+            budget = preferences.get("budget", 120)
+            raw = scrape_real_products(store_name, size=size, budget=budget)
+            if not raw:
+                return []
+
+            # Normalize: add sizes/delivery/in_stock fields the sim expects
+            normalized = []
+            for p in raw:
+                normalized.append({
+                    "name": p["name"],
+                    "brand": p.get("brand", "Unknown"),
+                    "price": p["price"],
+                    "rating": p.get("rating", 4.0),
+                    "sizes": [size],           # assume size available (live check would require product page)
+                    "delivery_days": 2,        # default; real sites need separate lookup
+                    "in_stock": True,
+                    "url": p.get("url", ""),
+                    "live": True,              # tag so dashboard can show "LIVE" badge
+                })
+            _live_cache[store_name] = normalized
+            return normalized
+        except Exception as e:
+            print(f"[LiveMode] Error: {e}")
+            return []
 
     def evaluate_product(self, product: dict, preferences: dict) -> dict:
         """Evaluate a product against user preferences."""

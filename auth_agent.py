@@ -34,7 +34,7 @@ def issue_credential(context_graph: dict, session_id: str, run_number: int = 1) 
         "agent_id": f"shopper-{session_id}",
         "user_id": context_graph.get("user_id", "user-001"),
         "run_number": run_number,
-        "authorized_sites": ["zappos.com", "nike.com", "amazon.com"],
+        "authorized_sites": ["zappos.com", "6pm.com", "nike.com", "amazon.com"],
         "max_autonomous_spend": trust.get("max_autonomous_spend", 120),
         "approved_categories": trust.get("approved_categories", ["footwear"]),
         "brand_whitelist": prefs.get("brands", []),

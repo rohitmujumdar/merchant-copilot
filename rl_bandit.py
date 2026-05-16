@@ -85,9 +85,10 @@ class RLAgent:
             "site": Bandit(
                 name="site",
                 arms=[
-                    Arm(name="zappos"),
-                    Arm(name="nike"),
-                    Arm(name="amazon"),
+                    Arm(name="zappos"),   # LIVE: real scraping via Jina.ai
+                    Arm(name="6pm"),      # LIVE: real scraping via Jina.ai
+                    Arm(name="nike"),     # simulated (JS-heavy site)
+                    Arm(name="amazon"),   # simulated (bot-blocked)
                 ]
             ),
             "query_style": Bandit(
