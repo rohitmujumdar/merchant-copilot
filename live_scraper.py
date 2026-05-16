@@ -19,10 +19,12 @@ config = dotenv_values(".env")
 client = anthropic.Anthropic(api_key=config["ANTHROPIC_API_KEY"])
 
 SEARCH_URLS = {
-    "zappos": "https://www.zappos.com/search?term=nike+adidas+running+sneakers+men",
-    "6pm":    "https://www.6pm.com/men-running-shoes/CK_XARC81wEY0O4BwAEC4gIEAQIDGA.zso",
-    "nike":   "https://www.nike.com/w/mens-running-shoes-37v7jznik1zy7ok",
-    "amazon": "https://www.amazon.com/s?k=nike+adidas+running+shoes+men",
+    "zappos":  "https://www.zappos.com/search?term=nike+adidas+running+sneakers+men",
+    "6pm":     "https://www.6pm.com/men-running-shoes/CK_XARC81wEY0O4BwAEC4gIEAQIDGA.zso",
+    "stockx":  "https://stockx.com/sneakers/nike",
+    "goat":    "https://www.goat.com/sneakers/brand/nike",
+    "nike":    "https://www.nike.com/w/mens-running-shoes-37v7jznik1zy7ok",
+    "amazon":  "https://www.amazon.com/s?k=nike+adidas+running+shoes+men",
 }
 
 def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
@@ -54,6 +56,54 @@ def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
             "rating": float(rating),
             "brand": brand,
             "url": url,
+        })
+        if len(products) >= 6:
+            break
+    return products
+
+
+def _parse_stockx(text: str) -> list[dict]:
+    """Parse StockX: 'Nike Product Name Lowest Ask $PRICE'"""
+    products = []
+    pattern = re.compile(r'(Nike [^\]]{5,60}?) Lowest Ask \$(\d+)', re.IGNORECASE)
+    seen = set()
+    for m in pattern.finditer(text):
+        name, price_str = m.groups()
+        name = name.strip()
+        if name in seen:
+            continue
+        seen.add(name)
+        products.append({
+            "name": name,
+            "price": float(price_str),
+            "rating": 4.5,  # StockX doesn't show ratings; use default
+            "brand": "Nike",
+            "url": "",
+        })
+        if len(products) >= 6:
+            break
+    return products
+
+
+def _parse_goat(text: str) -> list[dict]:
+    """Parse GOAT: '[Product Name $PRICE ![Image'"""
+    products = []
+    pattern = re.compile(r'\[([^\]]*?Nike[^\]]*?) \$(\d+) !\[', re.IGNORECASE)
+    seen = set()
+    for m in pattern.finditer(text):
+        raw_name, price_str = m.groups()
+        # Clean trailing date fragments
+        name = re.sub(r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d*\s*$', '', raw_name).strip()
+        name = re.sub(r'\s*\d{4}\s*$', '', name).strip()
+        if name in seen:
+            continue
+        seen.add(name)
+        products.append({
+            "name": name,
+            "price": float(price_str),
+            "rating": 4.5,  # GOAT doesn't show ratings; use default
+            "brand": "Nike",
+            "url": "",
         })
         if len(products) >= 6:
             break
@@ -110,17 +160,26 @@ def scrape_real_products(site: str, size: int = 10, budget: int = 120) -> list[d
             return []
         # Product listings appear deep in the page — find where they start
         full = resp.text
-        listing_start = full.find("out of 5 stars")
-        if listing_start > 0:
-            raw = full[max(0, listing_start - 200): listing_start + 8000]
+        if site in ("stockx", "goat"):
+            # These sites have products scattered; use more text
+            raw = full[:30000]
         else:
-            raw = full[:8000]
+            listing_start = full.find("out of 5 stars")
+            if listing_start > 0:
+                raw = full[max(0, listing_start - 200): listing_start + 8000]
+            else:
+                raw = full[:8000]
     except Exception as e:
         print(f"[LiveScraper] Fetch failed: {e}")
         return []
 
     try:
-        products = _parse_zappos_markdown(raw, site)
+        if site == "stockx":
+            products = _parse_stockx(raw)
+        elif site == "goat":
+            products = _parse_goat(raw)
+        else:
+            products = _parse_zappos_markdown(raw, site)
         if not products:
             # Fallback: use Claude if regex parse fails
             products = _claude_extract(raw)

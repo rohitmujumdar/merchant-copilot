@@ -10,11 +10,6 @@
       "max_delivery_days": 2,
       "style": "running"
     },
-    "patterns": {
-      "buys_on_discount": true,
-      "prefers_top_rated": true,
-      "brand_loyalty": "Nike"
-    },
     "trust_rules": {
       "max_autonomous_spend": 150,
       "approved_categories": [
@@ -26,45 +21,112 @@
   "history": [
     {
       "run": 1,
-      "timestamp": "2026-05-16T19:51:50.171621",
+      "timestamp": "2026-05-16T21:30:17.257101",
       "strategy": {
-        "site": "amazon",
-        "query_style": "broad",
-        "filter_strategy": "price_first",
+        "site": "nike",
+        "query_style": "moderate",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 63,
+      "outcome": "purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-16T21:30:26.016624",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
         "abandon_threshold": "after_2_fails"
       },
-      "reward": 12,
-      "outcome": "captcha_blocked"
+      "reward": 67,
+      "outcome": "purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-16T21:30:37.989239",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": 57,
+      "outcome": "purchased"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-16T21:30:51.665923",
+      "strategy": {
+        "site": "amazon",
+        "query_style": "moderate",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 55,
+      "outcome": "purchased"
+    },
+    {
+      "run": 5,
+      "timestamp": "2026-05-16T21:31:01.805377",
+      "strategy": {
+        "site": "goat",
+        "query_style": "specific",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -4,
+      "outcome": "not_found"
     }
   ],
   "learned_insights": [
     {
       "run": 1,
-      "lesson": "Amazon returned CAPTCHA on run 1 \u2014 deprioritize Amazon for early runs."
+      "lesson": "Prioritize high-rated items early; rating-first filtering leads to successful full-match purchases efficiently."
+    },
+    {
+      "run": 2,
+      "lesson": "Brand-first filtering on Zappos efficiently finds exact matches and enables fast, under-budget purchases."
+    },
+    {
+      "run": 3,
+      "lesson": "Brand-first filtering on 6pm with specific queries leads to fast, budget-friendly purchases."
+    },
+    {
+      "run": 4,
+      "lesson": "Brand-first filtering efficiently finds full matches; expect captchas but proceed confidently to checkout."
+    },
+    {
+      "run": 5,
+      "lesson": "Try broader search terms when specific queries return no results on GOAT."
     }
   ],
   "cohort": "brand_loyal",
   "rl_weights": {
     "site": {
-      "zappos": 0.38,
-      "nike": 0.31,
-      "amazon": 0.31
+      "zappos": 0.205,
+      "6pm": 0.191,
+      "stockx": 0.108,
+      "goat": 0.108,
+      "nike": 0.199,
+      "amazon": 0.188
     },
     "query_style": {
-      "broad": 0.28,
-      "moderate": 0.36,
-      "specific": 0.36
+      "broad": 0.161,
+      "moderate": 0.413,
+      "specific": 0.426
     },
     "filter_strategy": {
-      "price_first": 0.29,
-      "brand_first": 0.24,
-      "rating_first": 0.24,
-      "size_first": 0.23
+      "price_first": 0.138,
+      "brand_first": 0.469,
+      "rating_first": 0.255,
+      "size_first": 0.138
     },
     "abandon_threshold": {
-      "after_1_fail": 0.34,
-      "after_2_fails": 0.33,
-      "after_3_fails": 0.33
+      "after_1_fail": 0.413,
+      "after_2_fails": 0.304,
+      "after_3_fails": 0.283
     }
   }
 }

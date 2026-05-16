@@ -2,18 +2,125 @@
   {
     "run": 1,
     "strategy": {
-      "site": "6pm",
-      "query_style": "broad",
-      "filter_strategy": "size_first",
+      "site": "nike",
+      "query_style": "moderate",
+      "filter_strategy": "rating_first",
       "abandon_threshold": "after_1_fail"
+    },
+    "reward": 63,
+    "reward_breakdown": {
+      "under_budget": 10,
+      "item_found_full_match": 20,
+      "checkout_reached": 15,
+      "fast_delivery": 5,
+      "purchase_completed": 25,
+      "step_penalty": -12
+    },
+    "steps": 6,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Run Swift 3",
+      "brand": "Nike",
+      "price": 85.0,
+      "rating": 4.4,
+      "sizes": [
+        10
+      ],
+      "delivery_days": 2,
+      "in_stock": true,
+      "url": "https://www.zappos.com/p/nike-run-swift-3-black-white-dark-smoke-grey/product/10020703/color/834053",
+      "live": true
+    },
+    "payment": {
+      "success": true,
+      "protocol": "x402-simulated",
+      "confirmation_id": "x402-sim-485fef49",
+      "amount_charged": 85.0,
+      "currency": "USD",
+      "product": "Nike Run Swift 3",
+      "brand": "Nike",
+      "timestamp": "2026-05-16T21:30:15.288461+00:00"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering the Nike store and searching for sneakers with brand and size information.",
+        "action": "ENTER_STORE [nike]"
+      },
+      {
+        "step": 2,
+        "thought": "I'll search for Nike sneakers in size 10 with a moderate query style.",
+        "action": "SEARCH [Nike sneakers size 10]"
+      },
+      {
+        "step": 3,
+        "thought": "Filtering by constraints: budget \u2264 $120, size 10 available, delivery \u2264 2 days. Looking at the results:",
+        "action": "ABANDON"
+      },
+      {
+        "step": 4,
+        "thought": "Nike didn't have options with 2-day delivery. Let me try Zappos, which often has fast shipping (typically 1-day free shipping).",
+        "action": "ENTER_STORE [zappos]"
+      },
+      {
+        "step": 5,
+        "thought": "I'll search for Nike or Adidas sneakers in size 10 on Zappos.",
+        "action": "SEARCH [Nike Adidas sneakers size 10]"
+      },
+      {
+        "step": 6,
+        "thought": "Filtering by constraints: budget \u2264 $120, size 10 available, delivery \u2264 2 days, rating first strategy:",
+        "action": "EVALUATE [0]"
+      },
+      {
+        "step": 7,
+        "thought": "The Nike Run Swift 3 is a perfect match - brand \u2713, price $85 (under $120 budget) \u2713, size 10 \u2713, delivery 2 days \u2713. I should purchase it.",
+        "action": "PURCHASE [0]"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.146,
+        "6pm": 0.146,
+        "stockx": 0.146,
+        "goat": 0.146,
+        "nike": 0.269,
+        "amazon": 0.146
+      },
+      "query_style": {
+        "broad": 0.26,
+        "moderate": 0.479,
+        "specific": 0.26
+      },
+      "filter_strategy": {
+        "price_first": 0.207,
+        "brand_first": 0.207,
+        "rating_first": 0.38,
+        "size_first": 0.207
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.479,
+        "after_2_fails": 0.26,
+        "after_3_fails": 0.26
+      }
+    },
+    "lesson": "Prioritize high-rated items early; rating-first filtering leads to successful full-match purchases efficiently."
+  },
+  {
+    "run": 2,
+    "strategy": {
+      "site": "zappos",
+      "query_style": "specific",
+      "filter_strategy": "brand_first",
+      "abandon_threshold": "after_2_fails"
     },
     "reward": 67,
     "reward_breakdown": {
       "under_budget": 10,
-      "purchase_completed": 25,
       "item_found_full_match": 20,
       "checkout_reached": 15,
       "fast_delivery": 5,
+      "purchase_completed": 25,
       "step_penalty": -8
     },
     "steps": 4,
@@ -34,243 +141,325 @@
     "payment": {
       "success": true,
       "protocol": "x402-simulated",
-      "confirmation_id": "x402-sim-dac9210d",
+      "confirmation_id": "x402-sim-202e4590",
       "amount_charged": 85.0,
       "currency": "USD",
       "product": "Nike Run Swift 3",
       "brand": "Nike",
-      "timestamp": "2026-05-16T20:56:06.668091+00:00"
+      "timestamp": "2026-05-16T21:30:24.069062+00:00"
     },
     "reasoning_trace": [
       {
         "step": 1,
-        "thought": "The strategy says to shop on 6pm, but that's not an approved site. Approved sites are Zappos, Nike, and Amazon. I should abandon this strategy and go to an approved site instead. I'll start with Zappos since it's a good sneaker retailer.",
+        "thought": "I'll start by entering Zappos and searching for Nike/Adidas sneakers in size 10 within budget using a specific query style.",
         "action": "ENTER_STORE [zappos]"
       },
       {
         "step": 2,
-        "thought": "I'm now on Zappos. I'll search broadly for sneakers as the strategy suggests a broad query style.",
-        "action": "SEARCH [sneakers]"
-      },
-      {
-        "step": 3,
-        "thought": "I can see several Nike sneakers. The Nike Vomero 18 is over budget at $155. The best options within budget ($120) are the Nike Run Swift 3 ($85, rating 4.4), Nike Journey Run ($94.96, rating 4.1), Nike Flex Experience Run 12 ($75, rating 3.9), and Nike Defy ($60, rating 3.9). The Nike Run Swift 3 has the highest rating at 4.4 and is well within budget. Let me evaluate it.",
-        "action": "EVALUATE [0]"
-      },
-      {
-        "step": 4,
-        "thought": "The Nike Run Swift 3 is a perfect match - correct brand (Nike), price ($85, within $120 budget), size 10 available, and 2-day delivery. I should purchase it.",
-        "action": "PURCHASE [0]"
-      }
-    ],
-    "bandit_weights": {
-      "site": {
-        "zappos": 0.204,
-        "6pm": 0.387,
-        "nike": 0.204,
-        "amazon": 0.204
-      },
-      "query_style": {
-        "broad": 0.486,
-        "moderate": 0.257,
-        "specific": 0.257
-      },
-      "filter_strategy": {
-        "price_first": 0.204,
-        "brand_first": 0.204,
-        "rating_first": 0.204,
-        "size_first": 0.387
-      },
-      "abandon_threshold": {
-        "after_1_fail": 0.486,
-        "after_2_fails": 0.257,
-        "after_3_fails": 0.257
-      }
-    },
-    "lesson": "Apply size filter first to quickly find matching items and stay under budget."
-  },
-  {
-    "run": 2,
-    "strategy": {
-      "site": "amazon",
-      "query_style": "specific",
-      "filter_strategy": "size_first",
-      "abandon_threshold": "after_1_fail"
-    },
-    "reward": 67,
-    "reward_breakdown": {
-      "under_budget": 10,
-      "purchase_completed": 25,
-      "item_found_full_match": 20,
-      "checkout_reached": 15,
-      "fast_delivery": 5,
-      "step_penalty": -8
-    },
-    "steps": 4,
-    "outcome": "purchased",
-    "product": {
-      "name": "Nike Air Zoom Pegasus 41",
-      "brand": "Nike",
-      "price": 114,
-      "rating": 4.4,
-      "sizes": [
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "delivery_days": 1,
-      "in_stock": true
-    },
-    "payment": {
-      "success": true,
-      "protocol": "x402-simulated",
-      "confirmation_id": "x402-sim-5874321b",
-      "amount_charged": 114,
-      "currency": "USD",
-      "product": "Nike Air Zoom Pegasus 41",
-      "brand": "Nike",
-      "timestamp": "2026-05-16T20:56:15.149026+00:00"
-    },
-    "reasoning_trace": [
-      {
-        "step": 1,
-        "thought": "I'll start by entering Amazon as per my strategy, then search with a specific query including brand, size, and budget constraints.",
-        "action": "ENTER_STORE [amazon]"
-      },
-      {
-        "step": 2,
-        "thought": "Now I'll search with a specific query that includes brand, size, and budget to filter results efficiently.",
+        "thought": "I'll search with a specific query including brand, size, and budget constraints to find the best match efficiently.",
         "action": "SEARCH [Nike Adidas sneakers size 10 under $120]"
       },
       {
         "step": 3,
-        "thought": "Great results! All 4 products meet the size, budget, and delivery requirements. The Nike Air Zoom Pegasus 41 at $114 has the highest rating (4.4) and is within budget with 1-day delivery. Let me evaluate it first as it's the best value option.",
+        "thought": "Following the brand_first filter and lessons learned to prioritize high-rated items. The Nike Run Swift 3 has the highest rating (4.4) at $85, within budget, size 10 available, and 2-day delivery. I'll evaluate it first.",
         "action": "EVALUATE [0]"
       },
       {
         "step": 4,
-        "thought": "Perfect match on all criteria - brand (Nike), price ($114 under $120), size 10, and delivery within 2 days. I should purchase this immediately.",
+        "thought": "Perfect match on all criteria - brand, price, size, and delivery all match. The Nike Run Swift 3 at $85 is within budget, available in size 10, and delivers in 2 days. I should purchase it immediately.",
         "action": "PURCHASE [0]"
       }
     ],
     "bandit_weights": {
       "site": {
-        "zappos": 0.173,
-        "6pm": 0.327,
-        "nike": 0.173,
-        "amazon": 0.327
+        "zappos": 0.245,
+        "6pm": 0.129,
+        "stockx": 0.129,
+        "goat": 0.129,
+        "nike": 0.238,
+        "amazon": 0.129
       },
       "query_style": {
-        "broad": 0.396,
-        "moderate": 0.209,
-        "specific": 0.396
+        "broad": 0.211,
+        "moderate": 0.389,
+        "specific": 0.4
       },
       "filter_strategy": {
-        "price_first": 0.173,
-        "brand_first": 0.173,
-        "rating_first": 0.173,
-        "size_first": 0.482
+        "price_first": 0.174,
+        "brand_first": 0.33,
+        "rating_first": 0.321,
+        "size_first": 0.174
       },
       "abandon_threshold": {
-        "after_1_fail": 0.582,
-        "after_2_fails": 0.209,
-        "after_3_fails": 0.209
+        "after_1_fail": 0.389,
+        "after_2_fails": 0.4,
+        "after_3_fails": 0.211
       }
     },
-    "lesson": "Size-first filtering on Amazon yields fast, accurate results\u2014maintain this approach for specific queries."
+    "lesson": "Brand-first filtering on Zappos efficiently finds exact matches and enables fast, under-budget purchases."
   },
   {
     "run": 3,
     "strategy": {
       "site": "6pm",
-      "query_style": "broad",
-      "filter_strategy": "size_first",
-      "abandon_threshold": "after_1_fail"
+      "query_style": "specific",
+      "filter_strategy": "brand_first",
+      "abandon_threshold": "after_3_fails"
     },
-    "reward": 67,
+    "reward": 57,
     "reward_breakdown": {
+      "item_found_partial": 10,
       "under_budget": 10,
-      "purchase_completed": 25,
-      "item_found_full_match": 20,
       "checkout_reached": 15,
       "fast_delivery": 5,
+      "purchase_completed": 25,
       "step_penalty": -8
     },
     "steps": 4,
     "outcome": "purchased",
     "product": {
-      "name": "Nike Air Zoom Pegasus 41",
-      "brand": "Nike",
-      "price": 114,
-      "rating": 4.4,
+      "name": "adidas adiZero Boston 12 Running Shoes",
+      "brand": "adidas",
+      "price": 76.95,
+      "rating": 4.6,
       "sizes": [
-        8,
-        9,
-        10,
-        11,
-        12
+        10
       ],
-      "delivery_days": 1,
-      "in_stock": true
+      "delivery_days": 2,
+      "in_stock": true,
+      "url": "https://www.6pm.com/p/adidas-adizero-boston-12-running-shoes-white-aurora-met-solar-red/product/9868870/color/1081648",
+      "live": true
     },
     "payment": {
       "success": true,
       "protocol": "x402-simulated",
-      "confirmation_id": "x402-sim-7319eeb5",
-      "amount_charged": 114,
+      "confirmation_id": "x402-sim-deaed7d0",
+      "amount_charged": 76.95,
       "currency": "USD",
-      "product": "Nike Air Zoom Pegasus 41",
-      "brand": "Nike",
-      "timestamp": "2026-05-16T20:56:27.128635+00:00"
+      "product": "adidas adiZero Boston 12 Running Shoes",
+      "brand": "adidas",
+      "timestamp": "2026-05-16T21:30:36.163087+00:00"
     },
     "reasoning_trace": [
       {
         "step": 1,
-        "thought": "6pm is not an approved site (only Zappos, Nike, Amazon are approved). I should abandon this strategy's site choice and go to an approved site. Based on past run history, Amazon with size-first filtering worked well. Let me use Amazon with a broad search and size-first filtering.",
-        "action": "ENTER_STORE [amazon]"
+        "thought": "I'll start by entering the 6pm store, then search with a specific query using brand+size+budget filters.",
+        "action": "ENTER_STORE [6pm]"
       },
       {
         "step": 2,
-        "thought": "I'll search broadly for sneakers in my preferred brands, then filter by size. A broad query works for this run's strategy.",
-        "action": "SEARCH [Nike Adidas sneakers]"
+        "thought": "Now I'll search with a specific query for Nike or Adidas sneakers in size 10 under $120.",
+        "action": "SEARCH [Nike Adidas sneakers size 10 under $120]"
       },
       {
         "step": 3,
-        "thought": "Let me evaluate the best options. Filtering by my rules:",
-        "action": "EVALUATE [0]"
+        "thought": "Product [4] is an Adidas sneaker, within budget ($76.95 < $120), size 10 available, 2-day delivery, and has a high rating of 4.6. This looks like a great match. I'll evaluate it first to confirm details.",
+        "action": "EVALUATE [4]"
       },
       {
         "step": 4,
-        "thought": "Perfect match on all criteria - brand (Nike), price ($114 under $120 budget), size 10 available, and 1-day delivery. I should purchase this immediately.",
-        "action": "PURCHASE [0]"
+        "thought": "The evaluation shows a 75% match - price, size, and delivery all match. The \"brand\" miss is odd since Adidas is in my approved brands list. However, Adidas is an approved brand and all other criteria are met: $76.95 is under $120 budget, size 10 available, 2-day delivery, and rating 4.6. I'll proceed with the purchase.",
+        "action": "PURCHASE [4]"
       }
     ],
     "bandit_weights": {
       "site": {
-        "zappos": 0.15,
-        "6pm": 0.417,
-        "nike": 0.15,
-        "amazon": 0.283
+        "zappos": 0.223,
+        "6pm": 0.207,
+        "stockx": 0.118,
+        "goat": 0.118,
+        "nike": 0.217,
+        "amazon": 0.118
       },
       "query_style": {
-        "broad": 0.491,
-        "moderate": 0.176,
-        "specific": 0.333
+        "broad": 0.182,
+        "moderate": 0.335,
+        "specific": 0.483
       },
       "filter_strategy": {
-        "price_first": 0.15,
-        "brand_first": 0.15,
-        "rating_first": 0.15,
-        "size_first": 0.551
+        "price_first": 0.154,
+        "brand_first": 0.409,
+        "rating_first": 0.283,
+        "size_first": 0.154
       },
       "abandon_threshold": {
-        "after_1_fail": 0.648,
-        "after_2_fails": 0.176,
-        "after_3_fails": 0.176
+        "after_1_fail": 0.335,
+        "after_2_fails": 0.345,
+        "after_3_fails": 0.32
       }
     },
-    "lesson": "Filter by size first on 6pm to secure full matches quickly and stay under budget."
+    "lesson": "Brand-first filtering on 6pm with specific queries leads to fast, budget-friendly purchases."
+  },
+  {
+    "run": 4,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "moderate",
+      "filter_strategy": "brand_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": 55,
+    "reward_breakdown": {
+      "captcha_blocked": -10,
+      "under_budget": 10,
+      "item_found_full_match": 20,
+      "checkout_reached": 15,
+      "fast_delivery": 5,
+      "purchase_completed": 25,
+      "step_penalty": -10
+    },
+    "steps": 5,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Run Swift 3",
+      "brand": "Nike",
+      "price": 85.0,
+      "rating": 4.4,
+      "sizes": [
+        10
+      ],
+      "delivery_days": 2,
+      "in_stock": true,
+      "url": "https://www.zappos.com/p/nike-run-swift-3-black-white-dark-smoke-grey/product/10020703/color/834053",
+      "live": true
+    },
+    "payment": {
+      "success": true,
+      "protocol": "x402-simulated",
+      "confirmation_id": "x402-sim-640559bd",
+      "amount_charged": 85.0,
+      "currency": "USD",
+      "product": "Nike Run Swift 3",
+      "brand": "Nike",
+      "timestamp": "2026-05-16T21:30:49.820784+00:00"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Amazon as specified in my strategy.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "Amazon has a CAPTCHA, so I should abandon and try another site. Based on my run history, Zappos has been successful with brand-first filtering.",
+        "action": "ABANDON"
+      },
+      {
+        "step": 3,
+        "thought": "I'll try Zappos next, which has worked well in previous runs with brand-first filtering.",
+        "action": "ENTER_STORE zappos"
+      },
+      {
+        "step": 4,
+        "thought": "I'll search with a moderate query style (brand + size) on Zappos, using brand-first filtering as per my strategy.",
+        "action": "SEARCH Nike sneakers size 10"
+      },
+      {
+        "step": 5,
+        "thought": "I can see several Nike options. The Nike Run Swift 3 at $85 with a 4.4 rating looks like the best combination of price and rating. It's within budget, size 10 is available, and delivery is 2 days. Let me evaluate it first.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 6,
+        "thought": "Perfect match on all criteria - brand, price, size, and delivery all match. The Nike Run Swift 3 at $85 is well within the $120 budget and has the highest rating (4.4) of the affordable options. I'll purchase it.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.205,
+        "6pm": 0.191,
+        "stockx": 0.108,
+        "goat": 0.108,
+        "nike": 0.199,
+        "amazon": 0.188
+      },
+      "query_style": {
+        "broad": 0.161,
+        "moderate": 0.413,
+        "specific": 0.426
+      },
+      "filter_strategy": {
+        "price_first": 0.138,
+        "brand_first": 0.469,
+        "rating_first": 0.255,
+        "size_first": 0.138
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.413,
+        "after_2_fails": 0.304,
+        "after_3_fails": 0.283
+      }
+    },
+    "lesson": "Brand-first filtering efficiently finds full matches; expect captchas but proceed confidently to checkout."
+  },
+  {
+    "run": 5,
+    "strategy": {
+      "site": "goat",
+      "query_style": "specific",
+      "filter_strategy": "price_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": -4,
+    "reward_breakdown": {
+      "step_penalty": -4
+    },
+    "steps": 2,
+    "outcome": "not_found",
+    "product": null,
+    "payment": {
+      "success": false,
+      "reason": "No purchase made"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering the GOAT store and searching for Nike/Adidas sneakers in size 10 under $120 with a specific query style.",
+        "action": "ENTER_STORE [goat]"
+      },
+      {
+        "step": 2,
+        "thought": "I'll search with a specific query including brand, size, and budget to find the best match efficiently.",
+        "action": "SEARCH [Nike Adidas sneakers size 10 under $120]"
+      },
+      {
+        "step": 3,
+        "thought": "All products are over $120 budget. Since the strategy says to abandon after 1 failure, and none of the results are within budget, I should abandon this site.",
+        "action": "ABANDON"
+      },
+      {
+        "step": 4,
+        "thought": "GOAT didn't have anything in budget. Since the strategy was for GOAT and I've hit a failure, I should end the run rather than continue to another site (the strategy specified GOAT only with abandon after 1 failure).",
+        "action": "Run #5 failed - GOAT search returned no sneakers within the $120 budget (lowest price was $139). Abandoned after 1 failure as per strategy. No purchase made."
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.205,
+        "6pm": 0.191,
+        "stockx": 0.108,
+        "goat": 0.108,
+        "nike": 0.199,
+        "amazon": 0.188
+      },
+      "query_style": {
+        "broad": 0.161,
+        "moderate": 0.413,
+        "specific": 0.426
+      },
+      "filter_strategy": {
+        "price_first": 0.138,
+        "brand_first": 0.469,
+        "rating_first": 0.255,
+        "size_first": 0.138
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.413,
+        "after_2_fails": 0.304,
+        "after_3_fails": 0.283
+      }
+    },
+    "lesson": "Try broader search terms when specific queries return no results on GOAT."
   }
 ]

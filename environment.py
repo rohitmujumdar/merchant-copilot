@@ -15,7 +15,7 @@ import random
 # Set True to pull real product data from Zappos / 6pm via Jina.ai reader.
 # Nike and Amazon fall back to simulation (JS-heavy / bot-blocked).
 LIVE_MODE = True
-LIVE_SITES = {"zappos", "6pm"}   # sites that scrape reliably
+LIVE_SITES = {"zappos", "6pm", "stockx", "goat"}   # sites that scrape reliably
 
 _live_cache: dict = {}  # cache per site per run so we don't re-fetch mid-episode
 
@@ -65,6 +65,20 @@ STORES = {
         "search_noise": 0.1,
         "live_url": "https://www.6pm.com/mens-athletic-shoes",
         "strengths": "Discounted Zappos inventory, good for deals",
+    },
+    "stockx": {
+        "catalog": AMAZON_CATALOG,   # fallback if live fails
+        "captcha_rate": 0.05,
+        "search_noise": 0.05,
+        "live_url": "https://stockx.com/sneakers/nike",
+        "strengths": "Resale marketplace — hyped shoes, market-driven pricing",
+    },
+    "goat": {
+        "catalog": NIKE_CATALOG,     # fallback if live fails
+        "captcha_rate": 0.05,
+        "search_noise": 0.05,
+        "live_url": "https://www.goat.com/sneakers/brand/nike",
+        "strengths": "Premium resale — authenticated sneakers, collector items",
     },
     "nike": {
         "catalog": NIKE_CATALOG,

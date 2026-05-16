@@ -86,7 +86,9 @@ class RLAgent:
                 name="site",
                 arms=[
                     Arm(name="zappos"),   # LIVE: real scraping via Jina.ai
-                    Arm(name="6pm"),      # LIVE: real scraping via Jina.ai
+                    Arm(name="6pm"),      # LIVE: real scraping (discount retailer)
+                    Arm(name="stockx"),   # LIVE: real scraping (resale marketplace)
+                    Arm(name="goat"),     # LIVE: real scraping (premium resale)
                     Arm(name="nike"),     # simulated (JS-heavy site)
                     Arm(name="amazon"),   # simulated (bot-blocked)
                 ]
