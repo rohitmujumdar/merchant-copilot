@@ -18,7 +18,7 @@ import anthropic
 
 load_dotenv()
 
-st.set_page_config(page_title="STRIDE", page_icon="👟", layout="wide")
+st.set_page_config(page_title="STRIDE", page_icon="🛒", layout="wide")
 
 CONTEXT_GRAPH_PATH = Path("context_graph.json")
 RUN_RESULTS_PATH = Path("run_results.json")
@@ -207,7 +207,7 @@ if "run_progress" not in st.session_state:
 with st.sidebar:
     st.markdown("""
     <div style="text-align:center; padding: 16px 0;">
-        <div style="font-size: 2.5rem;">👟</div>
+        <div style="font-size: 2.5rem;">🛒</div>
         <div style="font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">STRIDE</div>
         <div style="color: #8b95a5; font-size: 0.8rem; margin-top: 4px;">AI Shopping Agent</div>
     </div>
@@ -294,7 +294,7 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
 
     # Chat history
     for msg in st.session_state.chat_history:
-        with st.chat_message(msg["role"], avatar="👟" if msg["role"] == "assistant" else None):
+        with st.chat_message(msg["role"], avatar="🛒" if msg["role"] == "assistant" else None):
             st.markdown(msg["content"])
 
     if not st.session_state.chat_history:
@@ -308,7 +308,7 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        with st.chat_message("assistant", avatar="👟"):
+        with st.chat_message("assistant", avatar="🛒"):
             with st.spinner("Thinking..."):
                 messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.chat_history]
                 response = client.messages.create(
@@ -535,7 +535,7 @@ elif st.session_state.screen == "results":
         live = "LIVE" if product.get("live") else "SIM"
         st.markdown(f"""
         <div class="card-highlight" style="display: flex; align-items: center; gap: 16px;">
-            <div style="font-size: 2rem;">👟</div>
+            <div style="font-size: 2rem;">🛒</div>
             <div>
                 <div style="color: #e2e8f0; font-weight: 600; font-size: 1.1rem;">{p_name}</div>
                 <div style="color: #8b95a5; margin-top: 4px;">
