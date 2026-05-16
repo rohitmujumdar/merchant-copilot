@@ -17,6 +17,7 @@ Flow per episode:
 
 import json
 import uuid
+from pathlib import Path
 from dotenv import dotenv_values
 import anthropic
 
@@ -31,6 +32,7 @@ config = dotenv_values(".env")
 client = anthropic.Anthropic(api_key=config["ANTHROPIC_API_KEY"])
 
 TOTAL_RUNS = 10
+BANDIT_STATE_PATH = "bandit_state.json"
 
 
 def generate_reflexion(run_result: dict, context_graph: dict) -> str:
@@ -80,17 +82,31 @@ Do NOT rename/remove fields without bumping the version.
 def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
     """
     Run all episodes. Returns list of results for dashboard.
+
+    Design:
+      - Episodes 1 through N-1 are SIMULATED exploration (no real payment).
+      - Episode N (the final one) is the PURCHASE CANDIDATE — presented to user.
+      - Bandit state persists across run_full_loop() calls so learning compounds.
+
     Output schema: see RUN_RESULTS_SCHEMA_VERSION above.
     """
     memory = MemoryAgent()
-    bandit = RLAgent()
+
+    # ── FIX #2: Load persisted bandit state (learning compounds across sessions)
+    if Path(BANDIT_STATE_PATH).exists():
+        bandit = RLAgent.load(BANDIT_STATE_PATH)
+        print("[Bandit] Loaded saved state — continuing from previous learning")
+    else:
+        bandit = RLAgent()
+        print("[Bandit] Fresh start — no previous learning found")
+
     session_id = uuid.uuid4().hex[:8]
 
     all_results = []
 
     print("\n" + "🛒 " * 20)
     print("STRIDE — RL SHOPPING AGENT")
-    print(f"Running {total_runs} episodes. Watch the reward curve climb.")
+    print(f"Running {total_runs} episodes ({total_runs - 1} exploration + 1 purchase candidate).")
     print("🛒 " * 20 + "\n")
 
     for run_number in range(1, total_runs + 1):
@@ -121,10 +137,13 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
             memory_agent=memory,  # Agent-to-Agent: Shopper can query Memory mid-run
         )
 
-        # ── 5. PAYMENT AGENT: Fire if purchased ────────────────────
-        payment_result = {"success": False, "reason": "No purchase made"}
+        # ── 5. PAYMENT AGENT: Only fires on FINAL episode ───────────
+        # FIX #1: Episodes 1 to N-1 are exploration only. No real payment.
+        # Payment only happens on the last episode IF it found a product.
+        payment_result = {"success": False, "reason": "Exploration only — no payment"}
+        is_final_episode = (run_number == total_runs)
 
-        if run_result["outcome"] == "purchased" and run_result["product"]:
+        if is_final_episode and run_result["outcome"] == "purchased" and run_result["product"]:
             product = run_result["product"]
             site_key = strategy["site"] + ".com"
             auth_check = verify_credential(credential, site_key, product["price"])
@@ -132,12 +151,14 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
             if auth_check["cleared"]:
                 payment_result = execute_payment(product, credential, auth_check)
                 if payment_result["success"]:
-                    print(f"[Payment] x402 confirmed. ${product['price']} charged. "
+                    print(f"[Payment] 🎉 FINAL PURCHASE via x402. ${product['price']} charged. "
                           f"ID: {payment_result.get('confirmation_id')}")
                 else:
                     print(f"[Payment] Failed: {payment_result.get('reason')}")
             else:
                 print(f"[Auth] Payment blocked: {auth_check['reason']}")
+        elif not is_final_episode and run_result["outcome"] == "purchased":
+            print(f"[Explore] Found {run_result['product']['name']} @ ${run_result['product']['price']} — simulated (not buying yet)")
 
         run_result["payment"] = payment_result
 
@@ -192,14 +213,24 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
         print(f"  Lesson:   {lesson}")
         print(f"{'='*60}")
 
+    # ── Save bandit state for next session (FIX #2: learning persists) ──
+    bandit.save(BANDIT_STATE_PATH)
+    print(f"[Bandit] State saved to {BANDIT_STATE_PATH} — learning persists to next run")
+
     # ── Final summary ───────────────────────────────────────────────
     rewards = [r["reward"] for r in all_results]
+    best_idx = rewards.index(max(rewards))
+    best_run = all_results[best_idx]
+
     print(f"\n{'🏆 '*20}")
     print(f"ALL {total_runs} RUNS COMPLETE")
     print(f"  Run 1 reward:  {rewards[0]} pts")
     print(f"  Run {total_runs} reward: {rewards[-1]} pts")
     print(f"  Improvement:   {rewards[-1] - rewards[0]:+} pts")
-    print(f"  Best run:      Run {rewards.index(max(rewards))+1} ({max(rewards)} pts)")
+    print(f"  Best run:      Run {best_idx+1} ({max(rewards)} pts)")
+    if best_run.get("product"):
+        print(f"  Best product:  {best_run['product']['name']} @ ${best_run['product']['price']}")
+    print(f"  Payment:       Final episode only (episodes 1-{total_runs-1} were exploration)")
     print(f"{'🏆 '*20}\n")
 
     # Save full results for dashboard

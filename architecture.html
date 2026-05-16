@@ -337,7 +337,7 @@
 <div class="hero">
     <h1>STRIDE</h1>
     <p class="backronym">Strategic Thompson-sampling Reinforcement for Internet Deal Exploration</p>
-    <p class="subtitle">An RL agent that learns to shop the internet autonomously across 10 episodes</p>
+    <p class="subtitle">An RL agent that explores the internet, learns the best shopping strategy, then buys once</p>
     <div class="badges">
         <span class="badge rl">Thompson Sampling</span>
         <span class="badge agent">5-Agent Loop</span>
@@ -358,7 +358,12 @@
 
     <div class="callout">
         <div class="callout-title">One sentence:</div>
-        <p>We run <strong>10 shopping episodes</strong>. Each episode, a Claude agent tries to buy a sneaker from a real website. After each episode, an RL bandit learns which strategy worked best, so the next episode is smarter.</p>
+        <p>We run <strong>10 episodes</strong>: the first 9 are <strong>simulated exploration</strong> (search, find, evaluate &mdash; no purchase). The agent learns which strategy works best. On episode 10, it uses its best learned strategy to make the <strong>one real purchase</strong>.</p>
+    </div>
+
+    <div class="callout" style="border-left-color: #10b981;">
+        <div class="callout-title">Learning persists:</div>
+        <p>Beta distributions are <strong>saved to disk</strong> after each session. Next time the user shops, the agent <em>continues</em> learning from where it left off &mdash; it doesn't start from scratch every time.</p>
     </div>
 
     <!-- The outer loop diagram -->
@@ -505,7 +510,7 @@
             <!-- Level 0: Full Run -->
             <rect x="50" y="10" width="800" height="50" rx="12" fill="rgba(108,60,225,0.2)" stroke="#a78bfa" stroke-width="2"/>
             <text x="450" y="32" text-anchor="middle" fill="#a78bfa" font-size="14" font-weight="800">FULL RUN (python run_loop.py)</text>
-            <text x="450" y="48" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= 10 episodes. User preferences stay fixed. Agent gets smarter each episode.</text>
+            <text x="450" y="48" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= 9 exploration episodes + 1 purchase. Beta distributions persist across sessions.</text>
 
             <!-- Connector -->
             <path d="M 450 60 L 450 80" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
@@ -514,7 +519,7 @@
             <!-- Level 1: One Episode -->
             <rect x="100" y="85" width="700" height="55" rx="12" fill="rgba(255,107,53,0.15)" stroke="#FF6B35" stroke-width="2"/>
             <text x="450" y="105" text-anchor="middle" fill="#FF6B35" font-size="13" font-weight="700">ONE EPISODE (e.g., Episode 5)</text>
-            <text x="450" y="125" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= One complete shopping attempt. Gets a strategy from the bandit, runs the ReAct loop, gets a reward score.</text>
+            <text x="450" y="125" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= One shopping attempt. Episodes 1-9: explore only (no buy). Episode 10: real purchase using best strategy.</text>
 
             <!-- Connector -->
             <path d="M 300 140 L 300 165" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
@@ -634,12 +639,14 @@
     <div class="callout orange">
         <div class="callout-title">How these relate (read this carefully)</div>
         <p>
-            <strong>1 Full Run</strong> = 10 episodes<br>
-            <strong>1 Episode</strong> = 1 strategy (from bandit) + 1 ReAct loop (Claude shopping) + 1 reward score<br>
+            <strong>1 Full Run</strong> = 9 exploration episodes + 1 purchase episode<br>
+            <strong>1 Episode (1-9)</strong> = explore: search + find + evaluate + score &mdash; <em>no real payment</em><br>
+            <strong>Episode 10</strong> = uses best learned strategy &rarr; finds product &rarr; <strong>one real purchase</strong><br>
             <strong>1 Strategy</strong> = 4 choices (one from each bandit): site + query + filter + abandon<br>
             <strong>1 Bandit</strong> = multiple arms. Thompson Sampling picks one arm per episode.<br>
             <strong>1 Arm</strong> = one option (e.g., "stockx"). Has a Beta(alpha, beta) that gets smarter after each use.<br>
-            <strong>1 ReAct Loop</strong> = 4-12 steps where Claude thinks + acts + observes until it buys or gives up<br>
+            <strong>Beta distributions persist</strong> = saved to <code>bandit_state.json</code> after every run. Next session picks up where it left off.<br>
+            <strong>1 ReAct Loop</strong> = 4-12 steps where Claude thinks + acts + observes until it finds a product or gives up<br>
             <strong>1 Step</strong> = one action (NAVIGATE, SEARCH, EVALUATE, PURCHASE, ASK_MEMORY, ABANDON)
         </p>
     </div>
@@ -706,7 +713,7 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <section>
     <h2>2. Inside One Episode (The Agent Pipeline)</h2>
-    <p class="section-subtitle">Each episode runs through 7 stages. Here's exactly what happens in each.</p>
+    <p class="section-subtitle">Each episode runs through 7 stages. Episodes 1&ndash;9 are <strong>exploration</strong> (no real payment). Episode 10 uses the learned strategy for the <strong>one real purchase</strong>.</p>
 
     <div class="diagram-container">
         <div class="diagram-title">ONE EPISODE: 7 STAGES</div>
@@ -738,7 +745,7 @@
             <div class="flow-node payment">
                 <div class="node-num">STAGE 5</div>
                 <div class="node-title">Payment</div>
-                <div class="node-desc">x402 tx</div>
+                <div class="node-desc">Episode 10 only</div>
             </div>
             <div class="flow-arrow">&rarr;</div>
             <div class="flow-node reward">
@@ -1407,7 +1414,7 @@ response = client.messages.create(
 
     <div class="callout green">
         <div class="callout-title">The safety invariant</div>
-        <p>The credential is issued ONCE at episode start. It cannot be modified mid-run. Even if Claude is "jailbroken" and tries to spend $500 on a shady site, the Payment Agent's verification will reject it. <strong>No agent can escalate its own permissions.</strong></p>
+        <p>Payment only fires on the <strong>final episode</strong> (episode 10). Episodes 1&ndash;9 explore without spending. Even on the final episode, the credential is checked: site must be authorized, amount must be under the cap, and early runs require human approval. <strong>No agent can escalate its own permissions.</strong></p>
     </div>
 </section>
 
@@ -1456,6 +1463,16 @@ response = client.messages.create(
                 <td>Defense in depth. Credential is immutable &mdash; can't be jailbroken mid-run.</td>
             </tr>
             <tr>
+                <td><strong>Explore 9, buy once</strong></td>
+                <td>Buy every episode</td>
+                <td>Real products cost real money. 9 simulated runs learn the best strategy, then 1 real purchase uses it.</td>
+            </tr>
+            <tr>
+                <td><strong>Persistent Beta state</strong></td>
+                <td>Reset every session</td>
+                <td>Learning compounds. User shops 3x &rarr; agent has 30 episodes of experience. Saved to bandit_state.json.</td>
+            </tr>
+            <tr>
                 <td><strong>Reflexion lessons</strong></td>
                 <td>Pure numeric signal</td>
                 <td>Interpretable. "Avoid GOAT for budget shoppers" is readable. Also feeds into future system prompts.</td>
@@ -1502,7 +1519,7 @@ response = client.messages.create(
         <div class="card highlight">
             <h3>Agentic Commerce</h3>
             <span class="tag tag-orange">End-to-end autonomy</span>
-            <p style="margin-top:8px;">Discovery &rarr; evaluation &rarr; decision &rarr; purchase. The agent makes real buying decisions, learning to optimize over time.</p>
+            <p style="margin-top:8px;">Explore 9 times &rarr; learn best strategy &rarr; make 1 real purchase. The agent learns before it spends.</p>
         </div>
     </div>
 </section>
@@ -1522,7 +1539,7 @@ response = client.messages.create(
             <table class="nice-table">
                 <thead><tr><th>File</th><th>Role</th></tr></thead>
                 <tbody>
-                    <tr><td><code>run_loop.py</code></td><td>Orchestrator. Runs 10 episodes, wires agents.</td></tr>
+                    <tr><td><code>run_loop.py</code></td><td>Orchestrator. 9 explore + 1 purchase, persists bandit.</td></tr>
                     <tr><td><code>shopping_agent.py</code></td><td>Claude ReAct loop + action dispatcher.</td></tr>
                     <tr><td><code>memory_agent.py</code></td><td>Context persistence, cohort priors.</td></tr>
                     <tr><td><code>rl_bandit.py</code></td><td>Thompson Sampling, 4 bandits.</td></tr>
@@ -1541,6 +1558,7 @@ response = client.messages.create(
                     <tr><td><code>live_scraper.py</code></td><td>Jina.ai reader + regex extraction.</td></tr>
                     <tr><td><code>app.py</code></td><td>Streamlit dashboard (Swati).</td></tr>
                     <tr><td><code>context_graph.json</code></td><td>Persistent memory (schema v1.0).</td></tr>
+                    <tr><td><code>bandit_state.json</code></td><td>Persisted Beta(α,β) for all 16 arms.</td></tr>
                     <tr><td><code>run_results.json</code></td><td>Dashboard data (schema v1.0).</td></tr>
                 </tbody>
             </table>
