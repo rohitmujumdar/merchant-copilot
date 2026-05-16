@@ -1,5 +1,5 @@
 """
-Streamlit Dashboard — Merchant Copilot Shopping Agent
+Streamlit Dashboard — STRIDE Shopping Agent
 
 3 screens:
   1. Onboarding: New user chats with Claude to set preferences
@@ -18,7 +18,7 @@ import anthropic
 
 load_dotenv()
 
-st.set_page_config(page_title="Merchant Copilot", page_icon="🛒", layout="wide")
+st.set_page_config(page_title="STRIDE", page_icon="👟", layout="wide")
 
 CONTEXT_GRAPH_PATH = Path("context_graph.json")
 RUN_RESULTS_PATH = Path("run_results.json")
@@ -45,8 +45,8 @@ if "run_progress" not in st.session_state:
 
 # ── Sidebar navigation ─────────────────────────────────────────────────────
 with st.sidebar:
-    st.title("🛒 Merchant Copilot")
-    st.caption("RL Shopping Agent + x402 Payments")
+    st.title("👟 STRIDE")
+    st.caption("Your AI shopping agent that learns and pays")
     st.divider()
 
     screen = st.radio(
@@ -84,7 +84,7 @@ if st.session_state.screen == "onboarding":
     st.header("👤 Tell your shopping agent about yourself")
     st.markdown("Chat naturally — the agent will learn your preferences and set up your profile.")
 
-    SYSTEM_PROMPT = """You are the onboarding assistant for Merchant Copilot, a personal shopping agent.
+    SYSTEM_PROMPT = """You are the onboarding assistant for STRIDE, a personal shopping agent.
 Your job: have a friendly conversation to learn the user's shopping preferences.
 
 You need to extract:

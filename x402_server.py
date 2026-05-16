@@ -55,7 +55,7 @@ CONTEXT_GRAPH_PATH = Path(__file__).parent / "context_graph.json"
 RUN_RESULTS_PATH = Path(__file__).parent / "run_results.json"
 
 # ── FastAPI app ─────────────────────────────────────────────────────────────
-app = FastAPI(title="Merchant Copilot x402 Checkout", version="1.0.0")
+app = FastAPI(title="STRIDE x402 Checkout", version="1.0.0")
 
 # ── x402 setup ──────────────────────────────────────────────────────────────
 facilitator = HTTPFacilitatorClient(FacilitatorConfig(url=FACILITATOR_URL))
@@ -170,7 +170,7 @@ async def agent_capabilities():
     it's a list of endpoints with input/output contracts for agents.
     """
     return {
-        "name": "Merchant Copilot Shopping System",
+        "name": "STRIDE Shopping System",
         "description": "RL-powered shopping agent with x402 payment on Base Sepolia",
         "endpoints": {
             "GET /agent-profile": {
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     import uvicorn
 
     print(f"\n{'='*60}")
-    print("MERCHANT COPILOT — x402 CHECKOUT SERVER")
+    print("STRIDE — x402 CHECKOUT SERVER")
     print(f"  Network:     Base Sepolia ({NETWORK})")
     print(f"  USDC:        {USDC_ADDRESS}")
     print(f"  Recipient:   {RECIPIENT_ADDRESS}")
