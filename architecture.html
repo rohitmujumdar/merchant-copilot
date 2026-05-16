@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRIDE — Architecture Deep Dive</title>
+    <style>
+        :root {
+            --primary: #6C3CE1;
+            --primary-light: #E8DEFF;
+            --secondary: #FF6B35;
+            --accent: #00C9A7;
+            --dark: #1a1a2e;
+            --card-bg: #ffffff;
+            --bg: #f8f7ff;
+            --text: #2d2d2d;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --code-bg: #1e1e2e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, var(--dark) 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(108,60,225,0.15) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 8px; position: relative; letter-spacing: 2px; }
+        .hero .backronym { font-size: 1rem; color: #a5b4fc; margin-bottom: 16px; position: relative; letter-spacing: 1px; }
+        .hero .subtitle { font-size: 1.2rem; color: #cbd5e1; margin-bottom: 24px; position: relative; }
+        .hero .badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+        .badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; }
+        .badge.live { border-color: var(--accent); color: var(--accent); }
+        .badge.rl { border-color: var(--secondary); color: var(--secondary); }
+        .badge.agent { border-color: #a78bfa; color: #a78bfa; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        section { padding: 60px 0; }
+        h2 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; color: var(--dark); }
+        .section-subtitle { color: var(--muted); font-size: 1.05rem; margin-bottom: 32px; }
+        h3 { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; color: var(--dark); }
+        h4 { font-size: 1.05rem; font-weight: 600; margin: 16px 0 8px; color: var(--dark); }
+        .separator { height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); margin: 40px 0; }
+
+        /* Cards */
+        .card { background: var(--card-bg); border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid var(--border); margin-bottom: 20px; }
+        .card.highlight { border-left: 4px solid var(--primary); }
+        .card.success { border-left: 4px solid var(--success); }
+        .card.warning { border-left: 4px solid var(--warning); }
+        .card.danger { border-left: 4px solid var(--danger); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+        /* Code */
+        .code-block {
+            background: var(--code-bg); border-radius: 12px; padding: 20px 24px; margin: 16px 0;
+            overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.82rem; line-height: 1.7; color: #cdd6f4;
+        }
+        .code-block .comment { color: #6c7086; }
+        .code-block .keyword { color: #cba6f7; }
+        .code-block .string { color: #a6e3a1; }
+        .code-block .number { color: #fab387; }
+        .code-block .highlight-line { background: rgba(108,60,225,0.15); display: block; margin: 0 -24px; padding: 0 24px; border-left: 3px solid var(--primary); }
+
+        /* Callout */
+        .callout { background: linear-gradient(135deg, var(--primary-light), #f0e6ff); border-radius: 12px; padding: 20px 24px; margin: 20px 0; border-left: 4px solid var(--primary); }
+        .callout.green { background: linear-gradient(135deg, #d1fae5, #ecfdf5); border-left-color: var(--success); }
+        .callout.orange { background: linear-gradient(135deg, #ffedd5, #fff7ed); border-left-color: var(--secondary); }
+        .callout.blue { background: linear-gradient(135deg, #dbeafe, #eff6ff); border-left-color: var(--info); }
+        .callout-title { font-weight: 700; margin-bottom: 4px; }
+
+        ul, ol { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+
+        /* Diagram styles */
+        .diagram-container {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 24px 0;
+            color: white;
+            overflow-x: auto;
+        }
+        .diagram-title {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #a5b4fc;
+        }
+
+        /* Flow nodes */
+        .flow-horizontal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+            min-width: fit-content;
+        }
+        .flow-node {
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 12px 16px;
+            text-align: center;
+            min-width: 100px;
+            position: relative;
+        }
+        .flow-node .node-num { font-size: 0.65rem; opacity: 0.6; margin-bottom: 2px; }
+        .flow-node .node-title { font-weight: 700; font-size: 0.8rem; }
+        .flow-node .node-desc { font-size: 0.65rem; opacity: 0.7; margin-top: 2px; }
+        .flow-node.memory { border-color: #a78bfa; color: #a78bfa; }
+        .flow-node.rl { border-color: var(--secondary); color: var(--secondary); }
+        .flow-node.auth { border-color: var(--warning); color: var(--warning); }
+        .flow-node.shopper { border-color: var(--accent); color: var(--accent); background: rgba(0,201,167,0.08); }
+        .flow-node.payment { border-color: var(--success); color: var(--success); }
+        .flow-node.reward { border-color: #f472b6; color: #f472b6; }
+        .flow-node.reflexion { border-color: #38bdf8; color: #38bdf8; }
+        .flow-arrow { color: rgba(255,255,255,0.4); font-size: 1.1rem; }
+
+        /* Vertical flow */
+        .flow-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .flow-v-step {
+            display: flex;
+            align-items: stretch;
+            min-height: 80px;
+        }
+        .flow-v-line {
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .flow-v-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 3px solid;
+            background: var(--card-bg);
+            z-index: 1;
+            margin-top: 12px;
+        }
+        .flow-v-connector {
+            flex: 1;
+            width: 2px;
+            background: var(--border);
+        }
+        .flow-v-content {
+            flex: 1;
+            padding: 8px 0 8px 16px;
+        }
+
+        /* Episode example */
+        .episode-box {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .episode-header {
+            background: var(--dark);
+            color: white;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .episode-body { padding: 20px; }
+        .episode-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        .episode-step:last-child { margin-bottom: 0; }
+        .step-badge {
+            min-width: 90px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .step-badge.thought { background: #ede9fe; color: #6d28d9; }
+        .step-badge.action { background: #ffedd5; color: #c2410c; }
+        .step-badge.observation { background: #d1fae5; color: #065f46; }
+        .step-badge.system { background: #e5e7eb; color: #374151; }
+        .step-content { font-size: 0.88rem; }
+        .step-content code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+
+        /* Bandit viz */
+        .bandit-viz {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .bandit-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .bandit-group h4 { margin-bottom: 8px; font-size: 0.9rem; }
+        .bandit-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .bandit-label { font-size: 0.75rem; min-width: 65px; color: var(--muted); }
+        .bandit-bar-bg { flex: 1; height: 20px; background: #f3f4f6; border-radius: 10px; overflow: hidden; }
+        .bandit-bar-fill { height: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 0.65rem; font-weight: 700; color: white; }
+        .bandit-bar-fill.high { background: linear-gradient(90deg, var(--primary), #8b5cf6); }
+        .bandit-bar-fill.mid { background: linear-gradient(90deg, var(--info), #60a5fa); }
+        .bandit-bar-fill.low { background: linear-gradient(90deg, #9ca3af, #d1d5db); }
+
+        /* Reward breakdown */
+        .reward-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .reward-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reward-bar {
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: white;
+        }
+        .reward-bar.positive { background: var(--success); }
+        .reward-bar.negative { background: var(--danger); }
+        .reward-bar.bonus { background: var(--primary); }
+        .reward-label { font-size: 0.8rem; min-width: 160px; }
+
+        /* Comparison */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .compare-col { padding: 24px; }
+        .compare-col:first-child { border-right: 2px solid var(--border); }
+        .compare-col h3 { font-size: 1rem; margin-bottom: 12px; }
+        .compare-col.bad { background: #fef2f2; }
+        .compare-col.good { background: #f0fdf4; }
+
+        /* Table */
+        .nice-table {
+            width: 100%; border-collapse: separate; border-spacing: 0;
+            border-radius: 12px; overflow: hidden; margin: 16px 0;
+        }
+        .nice-table th { background: var(--dark); color: white; padding: 12px 16px; text-align: left; font-size: 0.85rem; }
+        .nice-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        .nice-table tr:nth-child(even) { background: #f9fafb; }
+        .nice-table tr:last-child td { border-bottom: none; }
+
+        /* SVG diagrams */
+        .svg-diagram { width: 100%; margin: 20px 0; }
+
+        /* Metric */
+        .metric-card { text-align: center; padding: 24px; }
+        .metric-value { font-size: 2.5rem; font-weight: 800; color: var(--primary); }
+        .metric-label { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+
+        /* Footer */
+        .footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 40px; text-align: center; font-size: 0.9rem; }
+
+        /* Annotation arrows */
+        .annotated-diagram { position: relative; }
+        .annotation {
+            position: absolute;
+            background: var(--warning);
+            color: var(--dark);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* Tag */
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-right: 4px; }
+        .tag-purple { background: #ede9fe; color: #6d28d9; }
+        .tag-green { background: #d1fae5; color: #065f46; }
+        .tag-orange { background: #ffedd5; color: #c2410c; }
+        .tag-blue { background: #dbeafe; color: #1e40af; }
+        .tag-pink { background: #fce7f3; color: #be185d; }
+        .tag-red { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+    <h1>STRIDE</h1>
+    <p class="backronym">Strategic Thompson-sampling Reinforcement for Internet Deal Exploration</p>
+    <p class="subtitle">An RL agent that learns to shop the internet autonomously across 10 episodes</p>
+    <div class="badges">
+        <span class="badge rl">Thompson Sampling</span>
+        <span class="badge agent">5-Agent Loop</span>
+        <span class="badge live">Live Scraping (4 sites)</span>
+        <span class="badge">ReAct Reasoning</span>
+        <span class="badge">x402 Payments</span>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: THE BIG PICTURE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>1. The Big Picture</h2>
+    <p class="section-subtitle">What happens when you run <code>python run_loop.py</code></p>
+
+    <div class="callout">
+        <div class="callout-title">One sentence:</div>
+        <p>We run <strong>10 shopping episodes</strong>. Each episode, a Claude agent tries to buy a sneaker from a real website. After each episode, an RL bandit learns which strategy worked best, so the next episode is smarter.</p>
+    </div>
+
+    <!-- The outer loop diagram -->
+    <div class="diagram-container">
+        <div class="diagram-title">THE LEARNING LOOP (10 episodes)</div>
+        <svg viewBox="0 0 800 200" class="svg-diagram" style="max-width:800px; margin:0 auto; display:block;">
+            <!-- Circular arrow -->
+            <path d="M 400 180 A 160 80 0 1 1 400 20" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3" stroke-dasharray="8,4"/>
+            <polygon points="400,15 393,28 407,28" fill="rgba(255,255,255,0.3)"/>
+
+            <!-- Episode boxes -->
+            <rect x="60" y="70" width="80" height="60" rx="10" fill="rgba(255,107,53,0.2)" stroke="#FF6B35" stroke-width="2"/>
+            <text x="100" y="95" text-anchor="middle" fill="#FF6B35" font-size="11" font-weight="700">Episode 1</text>
+            <text x="100" y="112" text-anchor="middle" fill="#FF6B35" font-size="9" opacity="0.7">Explore</text>
+
+            <rect x="180" y="40" width="80" height="60" rx="10" fill="rgba(108,60,225,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="220" y="65" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">Episode 2</text>
+            <text x="220" y="82" text-anchor="middle" fill="#a78bfa" font-size="9" opacity="0.7">Learn</text>
+
+            <rect x="300" y="25" width="80" height="60" rx="10" fill="rgba(108,60,225,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="340" y="50" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">Episode 3</text>
+            <text x="340" y="67" text-anchor="middle" fill="#a78bfa" font-size="9" opacity="0.7">Learn</text>
+
+            <!-- dots -->
+            <text x="420" y="40" fill="rgba(255,255,255,0.4)" font-size="20">...</text>
+
+            <rect x="480" y="25" width="80" height="60" rx="10" fill="rgba(108,60,225,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="520" y="50" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">Episode 8</text>
+            <text x="520" y="67" text-anchor="middle" fill="#a78bfa" font-size="9" opacity="0.7">Exploit</text>
+
+            <rect x="600" y="40" width="80" height="60" rx="10" fill="rgba(108,60,225,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="640" y="65" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">Episode 9</text>
+            <text x="640" y="82" text-anchor="middle" fill="#a78bfa" font-size="9" opacity="0.7">Exploit</text>
+
+            <rect x="700" y="70" width="80" height="60" rx="10" fill="rgba(0,201,167,0.2)" stroke="#00C9A7" stroke-width="2"/>
+            <text x="740" y="95" text-anchor="middle" fill="#00C9A7" font-size="11" font-weight="700">Episode 10</text>
+            <text x="740" y="112" text-anchor="middle" fill="#00C9A7" font-size="9" opacity="0.7">Mastered</text>
+
+            <!-- Reward values -->
+            <text x="100" y="148" text-anchor="middle" fill="var(--secondary)" font-size="13" font-weight="800">64 pts</text>
+            <text x="740" y="148" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="800">99 pts</text>
+
+            <!-- Arrow showing improvement -->
+            <path d="M 130 155 L 700 155" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,4"/>
+            <text x="400" y="175" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11">+35 pts improvement as agent learns</text>
+        </svg>
+    </div>
+
+    <div class="grid-3">
+        <div class="card metric-card">
+            <div class="metric-value">64</div>
+            <div class="metric-label">Episode 1 reward (exploring)</div>
+        </div>
+        <div class="card metric-card">
+            <div class="metric-value" style="color:var(--accent);">99</div>
+            <div class="metric-label">Episode 10 reward (optimized)</div>
+        </div>
+        <div class="card metric-card">
+            <div class="metric-value" style="color:var(--secondary);">+35</div>
+            <div class="metric-label">Points gained via RL</div>
+        </div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 1.5: GLOSSARY + HIERARCHY -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>1.5 Glossary: Terms & How They Relate</h2>
+    <p class="section-subtitle">Before we dive deeper — here's every term, its definition, and how it connects to the others.</p>
+
+    <!-- Glossary table -->
+    <div class="card">
+        <table class="nice-table">
+            <thead><tr><th>Term</th><th>What it is</th><th>Analogy</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>Episode</strong></td>
+                    <td>One complete shopping attempt (navigate &rarr; search &rarr; evaluate &rarr; buy). We run 10 total.</td>
+                    <td>Like one game in a 10-game series. Same goal every time, different approach.</td>
+                </tr>
+                <tr>
+                    <td><strong>Strategy</strong></td>
+                    <td>The game plan for one episode. Picked by the RL bandit. Has 4 dimensions (site, query, filter, abandon).</td>
+                    <td>Like picking which store to visit + how to search.</td>
+                </tr>
+                <tr>
+                    <td><strong>RL Bandit</strong></td>
+                    <td>The "coach" that picks the strategy each episode. It's actually <strong>4 independent bandits</strong> (one per dimension).</td>
+                    <td>Like a coach who picks plays. Gets better as it sees which plays score.</td>
+                </tr>
+                <tr>
+                    <td><strong>Bandit</strong></td>
+                    <td>One decision-maker for one dimension (e.g., "which site?"). Contains multiple arms.</td>
+                    <td>Like a slot machine with multiple levers. You learn which lever pays best.</td>
+                </tr>
+                <tr>
+                    <td><strong>Arm</strong></td>
+                    <td>One option within a bandit. E.g., "stockx" is an arm of the site bandit. Has a Beta distribution that tracks how good it is.</td>
+                    <td>One lever on the slot machine. Pull it, get a reward (or not).</td>
+                </tr>
+                <tr>
+                    <td><strong>Thompson Sampling</strong></td>
+                    <td>The algorithm that picks which arm to pull. Draws a random sample from each arm's distribution, picks the highest.</td>
+                    <td>Like asking each option "how good are you?" and believing the most confident answer.</td>
+                </tr>
+                <tr>
+                    <td><strong>Beta Distribution</strong></td>
+                    <td>Each arm tracks successes (alpha) and failures (beta). More data &rarr; narrower distribution &rarr; more confident.</td>
+                    <td>A "confidence curve." Starts flat (no idea), becomes peaked (very sure).</td>
+                </tr>
+                <tr>
+                    <td><strong>ReAct Loop</strong></td>
+                    <td>How Claude shops within one episode: Think &rarr; Act &rarr; Observe &rarr; repeat. Each iteration is one "step."</td>
+                    <td>Like thinking out loud while shopping. "Hmm, try this... nope... try that... found it!"</td>
+                </tr>
+                <tr>
+                    <td><strong>Step</strong></td>
+                    <td>One action inside an episode (NAVIGATE, SEARCH, EVALUATE, PURCHASE, etc.). Fewer steps = higher reward.</td>
+                    <td>Each click/action you'd take on a website.</td>
+                </tr>
+                <tr>
+                    <td><strong>Reward</strong></td>
+                    <td>The score for one episode (0-99 pts). Based on: did you buy? right product? how many steps?</td>
+                    <td>Your grade on the shopping attempt.</td>
+                </tr>
+                <tr>
+                    <td><strong>Reflexion</strong></td>
+                    <td>After each episode, Claude writes a one-sentence lesson in plain English. Stored in memory for future episodes.</td>
+                    <td>"Note to self: StockX has cheap Nike shoes."</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- HIERARCHY DIAGRAM -->
+    <h3 style="margin-top:32px;">The Complete Hierarchy (How Everything Nests)</h3>
+
+    <div class="diagram-container">
+        <div class="diagram-title">SYSTEM HIERARCHY: Run &rarr; Episodes &rarr; Strategy &rarr; Steps</div>
+        <svg viewBox="0 0 900 520" style="max-width:900px; display:block; margin:0 auto;">
+            <!-- Level 0: Full Run -->
+            <rect x="50" y="10" width="800" height="50" rx="12" fill="rgba(108,60,225,0.2)" stroke="#a78bfa" stroke-width="2"/>
+            <text x="450" y="32" text-anchor="middle" fill="#a78bfa" font-size="14" font-weight="800">FULL RUN (python run_loop.py)</text>
+            <text x="450" y="48" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= 10 episodes. User preferences stay fixed. Agent gets smarter each episode.</text>
+
+            <!-- Connector -->
+            <path d="M 450 60 L 450 80" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+            <text x="460" y="75" fill="rgba(255,255,255,0.3)" font-size="9">contains</text>
+
+            <!-- Level 1: One Episode -->
+            <rect x="100" y="85" width="700" height="55" rx="12" fill="rgba(255,107,53,0.15)" stroke="#FF6B35" stroke-width="2"/>
+            <text x="450" y="105" text-anchor="middle" fill="#FF6B35" font-size="13" font-weight="700">ONE EPISODE (e.g., Episode 5)</text>
+            <text x="450" y="125" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= One complete shopping attempt. Gets a strategy from the bandit, runs the ReAct loop, gets a reward score.</text>
+
+            <!-- Connector -->
+            <path d="M 300 140 L 300 165" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+            <path d="M 600 140 L 600 165" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+
+            <!-- Level 2a: Strategy -->
+            <rect x="100" y="170" width="350" height="100" rx="12" fill="rgba(0,201,167,0.12)" stroke="#00C9A7" stroke-width="1.5"/>
+            <text x="275" y="192" text-anchor="middle" fill="#00C9A7" font-size="12" font-weight="700">STRATEGY (picked by RL Bandit)</text>
+            <text x="275" y="208" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">= The game plan for this episode. 4 choices combined:</text>
+
+            <!-- 4 strategy choices -->
+            <rect x="115" y="218" width="75" height="40" rx="6" fill="rgba(0,201,167,0.08)" stroke="rgba(0,201,167,0.4)" stroke-width="1"/>
+            <text x="152" y="236" text-anchor="middle" fill="#00C9A7" font-size="8" font-weight="700">Site</text>
+            <text x="152" y="250" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="7.5">"stockx"</text>
+
+            <rect x="200" y="218" width="75" height="40" rx="6" fill="rgba(0,201,167,0.08)" stroke="rgba(0,201,167,0.4)" stroke-width="1"/>
+            <text x="237" y="236" text-anchor="middle" fill="#00C9A7" font-size="8" font-weight="700">Query</text>
+            <text x="237" y="250" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="7.5">"specific"</text>
+
+            <rect x="285" y="218" width="75" height="40" rx="6" fill="rgba(0,201,167,0.08)" stroke="rgba(0,201,167,0.4)" stroke-width="1"/>
+            <text x="322" y="236" text-anchor="middle" fill="#00C9A7" font-size="8" font-weight="700">Filter</text>
+            <text x="322" y="250" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="7.5">"brand_first"</text>
+
+            <rect x="370" y="218" width="75" height="40" rx="6" fill="rgba(0,201,167,0.08)" stroke="rgba(0,201,167,0.4)" stroke-width="1"/>
+            <text x="407" y="236" text-anchor="middle" fill="#00C9A7" font-size="8" font-weight="700">Abandon</text>
+            <text x="407" y="250" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="7.5">"after_1"</text>
+
+            <!-- Level 2b: ReAct Loop -->
+            <rect x="480" y="170" width="350" height="100" rx="12" fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="655" y="192" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="700">ReAct LOOP (Claude's actions)</text>
+            <text x="655" y="208" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">= The steps Claude takes inside this episode:</text>
+
+            <!-- Steps -->
+            <rect x="495" y="218" width="155" height="20" rx="4" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+            <text x="572" y="232" text-anchor="middle" fill="#f59e0b" font-size="8">Step 1: NAVIGATE stockx.com</text>
+
+            <rect x="495" y="241" width="155" height="20" rx="4" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+            <text x="572" y="255" text-anchor="middle" fill="#f59e0b" font-size="8">Step 2: SEARCH nike size 10</text>
+
+            <rect x="660" y="218" width="155" height="20" rx="4" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+            <text x="737" y="232" text-anchor="middle" fill="#f59e0b" font-size="8">Step 3: EVALUATE [1]</text>
+
+            <rect x="660" y="241" width="155" height="20" rx="4" fill="rgba(16,185,129,0.2)" stroke="#10b981" stroke-width="1"/>
+            <text x="737" y="255" text-anchor="middle" fill="#10b981" font-size="8">Step 4: PURCHASE [1]</text>
+
+            <!-- Connector to Bandit -->
+            <path d="M 275 270 L 275 300" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+            <text x="285" y="293" fill="rgba(255,255,255,0.3)" font-size="9">chosen by</text>
+
+            <!-- Level 3: RL Bandit System -->
+            <rect x="50" y="305" width="800" height="200" rx="12" fill="rgba(244,114,182,0.08)" stroke="#f472b6" stroke-width="1.5"/>
+            <text x="450" y="328" text-anchor="middle" fill="#f472b6" font-size="13" font-weight="700">RL BANDIT SYSTEM (4 independent bandits, each with multiple arms)</text>
+
+            <!-- Bandit 1: Site -->
+            <rect x="70" y="345" width="180" height="145" rx="10" fill="rgba(108,60,225,0.1)" stroke="#a78bfa" stroke-width="1"/>
+            <text x="160" y="365" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">BANDIT 1: Site</text>
+            <text x="160" y="378" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">"Where to shop?"</text>
+            <!-- Arms -->
+            <rect x="80" y="388" width="65" height="22" rx="4" fill="rgba(0,201,167,0.2)" stroke="#00C9A7" stroke-width="1"/>
+            <text x="112" y="403" text-anchor="middle" fill="#00C9A7" font-size="8" font-weight="600">zappos</text>
+            <rect x="150" y="388" width="50" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="175" y="403" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">6pm</text>
+            <rect x="80" y="415" width="65" height="22" rx="4" fill="rgba(0,201,167,0.3)" stroke="#00C9A7" stroke-width="1.5"/>
+            <text x="112" y="430" text-anchor="middle" fill="#00C9A7" font-size="8" font-weight="700">stockx</text>
+            <rect x="150" y="415" width="50" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="175" y="430" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">goat</text>
+            <rect x="80" y="442" width="50" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="105" y="457" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">nike</text>
+            <rect x="135" y="442" width="65" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="167" y="457" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">amazon</text>
+            <text x="160" y="480" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="8">6 arms</text>
+
+            <!-- Bandit 2: Query Style -->
+            <rect x="265" y="345" width="160" height="145" rx="10" fill="rgba(255,107,53,0.1)" stroke="#FF6B35" stroke-width="1"/>
+            <text x="345" y="365" text-anchor="middle" fill="#FF6B35" font-size="10" font-weight="700">BANDIT 2: Query</text>
+            <text x="345" y="378" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">"How to search?"</text>
+            <rect x="280" y="390" width="65" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="312" y="405" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">broad</text>
+            <rect x="350" y="390" width="65" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="382" y="405" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">moderate</text>
+            <rect x="305" y="418" width="75" height="22" rx="4" fill="rgba(255,107,53,0.25)" stroke="#FF6B35" stroke-width="1.5"/>
+            <text x="342" y="433" text-anchor="middle" fill="#FF6B35" font-size="8" font-weight="700">specific</text>
+            <text x="345" y="460" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="8">3 arms</text>
+
+            <!-- Bandit 3: Filter -->
+            <rect x="440" y="345" width="180" height="145" rx="10" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="1"/>
+            <text x="530" y="365" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700">BANDIT 3: Filter</text>
+            <text x="530" y="378" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">"What matters most?"</text>
+            <rect x="455" y="390" width="70" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="490" y="405" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">price_first</text>
+            <rect x="530" y="390" width="75" height="22" rx="4" fill="rgba(59,130,246,0.25)" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="567" y="405" text-anchor="middle" fill="#3b82f6" font-size="8" font-weight="700">brand_first</text>
+            <rect x="455" y="418" width="75" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="492" y="433" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">rating_first</text>
+            <rect x="535" y="418" width="70" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="570" y="433" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">size_first</text>
+            <text x="530" y="460" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="8">4 arms</text>
+
+            <!-- Bandit 4: Abandon -->
+            <rect x="635" y="345" width="195" height="145" rx="10" fill="rgba(244,114,182,0.1)" stroke="#f472b6" stroke-width="1"/>
+            <text x="732" y="365" text-anchor="middle" fill="#f472b6" font-size="10" font-weight="700">BANDIT 4: Abandon</text>
+            <text x="732" y="378" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">"When to give up?"</text>
+            <rect x="650" y="390" width="80" height="22" rx="4" fill="rgba(244,114,182,0.2)" stroke="#f472b6" stroke-width="1.5"/>
+            <text x="690" y="405" text-anchor="middle" fill="#f472b6" font-size="8" font-weight="700">after_1_fail</text>
+            <rect x="735" y="390" width="85" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="777" y="405" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">after_2_fails</text>
+            <rect x="680" y="418" width="85" height="22" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="722" y="433" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">after_3_fails</text>
+            <text x="732" y="460" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="8">3 arms</text>
+
+            <!-- Total count -->
+            <text x="450" y="500" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11" font-weight="600">TOTAL: 4 bandits &times; (6 + 3 + 4 + 3) = 16 arms</text>
+        </svg>
+    </div>
+
+    <!-- Key relationship callout -->
+    <div class="callout orange">
+        <div class="callout-title">How these relate (read this carefully)</div>
+        <p>
+            <strong>1 Full Run</strong> = 10 episodes<br>
+            <strong>1 Episode</strong> = 1 strategy (from bandit) + 1 ReAct loop (Claude shopping) + 1 reward score<br>
+            <strong>1 Strategy</strong> = 4 choices (one from each bandit): site + query + filter + abandon<br>
+            <strong>1 Bandit</strong> = multiple arms. Thompson Sampling picks one arm per episode.<br>
+            <strong>1 Arm</strong> = one option (e.g., "stockx"). Has a Beta(alpha, beta) that gets smarter after each use.<br>
+            <strong>1 ReAct Loop</strong> = 4-12 steps where Claude thinks + acts + observes until it buys or gives up<br>
+            <strong>1 Step</strong> = one action (NAVIGATE, SEARCH, EVALUATE, PURCHASE, ASK_MEMORY, ABANDON)
+        </p>
+    </div>
+
+    <!-- Simple example -->
+    <div class="card success">
+        <h3>Concrete Example: Episode 5 Strategy</h3>
+        <p>The 4 bandits each pick one arm:</p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:12px; margin-top:12px;">
+            <div style="background:#f0fdf4; padding:12px; border-radius:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--muted);">Site Bandit picks:</div>
+                <div style="font-size:1.1rem; font-weight:700; color:var(--success);">stockx</div>
+                <div style="font-size:0.7rem; color:var(--muted);">(arm 3 of 6)</div>
+            </div>
+            <div style="background:#fff7ed; padding:12px; border-radius:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--muted);">Query Bandit picks:</div>
+                <div style="font-size:1.1rem; font-weight:700; color:var(--secondary);">specific</div>
+                <div style="font-size:0.7rem; color:var(--muted);">(arm 3 of 3)</div>
+            </div>
+            <div style="background:#eff6ff; padding:12px; border-radius:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--muted);">Filter Bandit picks:</div>
+                <div style="font-size:1.1rem; font-weight:700; color:var(--info);">brand_first</div>
+                <div style="font-size:0.7rem; color:var(--muted);">(arm 2 of 4)</div>
+            </div>
+            <div style="background:#fdf2f8; padding:12px; border-radius:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--muted);">Abandon Bandit picks:</div>
+                <div style="font-size:1.1rem; font-weight:700; color:#be185d;">after_1_fail</div>
+                <div style="font-size:0.7rem; color:var(--muted);">(arm 1 of 3)</div>
+            </div>
+        </div>
+        <p style="margin-top:12px; font-size:0.9rem;">Combined strategy: <code>{"site": "stockx", "query_style": "specific", "filter_strategy": "brand_first", "abandon_threshold": "after_1_fail"}</code></p>
+        <p style="font-size:0.85rem; color:var(--muted);">This tells Claude: "Go to StockX, search specifically, prioritize brand matches, give up immediately if something fails." Claude then executes this via its ReAct loop.</p>
+    </div>
+
+    <!-- What changes vs what's fixed -->
+    <div class="grid-2" style="margin-top:20px;">
+        <div class="card" style="border-left:4px solid var(--success);">
+            <h3 style="color:var(--success);">Fixed Across All 10 Episodes</h3>
+            <ul>
+                <li>User preferences: Nike/Adidas, size 10, budget $120</li>
+                <li>Max delivery: 2 days</li>
+                <li>Spend cap: $150</li>
+                <li>Available sites: zappos, 6pm, stockx, goat, nike, amazon</li>
+                <li>Goal: buy the best matching sneaker</li>
+            </ul>
+        </div>
+        <div class="card" style="border-left:4px solid var(--secondary);">
+            <h3 style="color:var(--secondary);">Changes Every Episode (This Is What RL Learns)</h3>
+            <ul>
+                <li>Which site to try (bandit learns StockX/Zappos are best)</li>
+                <li>How to search (bandit learns "specific" wins)</li>
+                <li>What to filter by (bandit learns "brand_first" works)</li>
+                <li>When to give up (bandit learns "after_1_fail" saves time)</li>
+                <li>Memory/lessons from prior episodes (Reflexion)</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: INSIDE ONE EPISODE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>2. Inside One Episode (The Agent Pipeline)</h2>
+    <p class="section-subtitle">Each episode runs through 7 stages. Here's exactly what happens in each.</p>
+
+    <div class="diagram-container">
+        <div class="diagram-title">ONE EPISODE: 7 STAGES</div>
+        <div class="flow-horizontal">
+            <div class="flow-node memory">
+                <div class="node-num">STAGE 1</div>
+                <div class="node-title">Memory</div>
+                <div class="node-desc">Load history</div>
+            </div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node rl">
+                <div class="node-num">STAGE 2</div>
+                <div class="node-title">RL Bandit</div>
+                <div class="node-desc">Pick strategy</div>
+            </div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node auth">
+                <div class="node-num">STAGE 3</div>
+                <div class="node-title">Auth</div>
+                <div class="node-desc">Issue credential</div>
+            </div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node shopper">
+                <div class="node-num">STAGE 4</div>
+                <div class="node-title">Shopper</div>
+                <div class="node-desc">Claude shops</div>
+            </div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node payment">
+                <div class="node-num">STAGE 5</div>
+                <div class="node-title">Payment</div>
+                <div class="node-desc">x402 tx</div>
+            </div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node reward">
+                <div class="node-num">STAGE 6</div>
+                <div class="node-title">Reward</div>
+                <div class="node-desc">Score it</div>
+            </div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node reflexion">
+                <div class="node-num">STAGE 7</div>
+                <div class="node-title">Reflexion</div>
+                <div class="node-desc">Write lesson</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONCRETE EXAMPLE: Episode 5 walkthrough -->
+    <h3>Concrete Example: Episode 5 (a real run from our demo)</h3>
+
+    <div class="episode-box">
+        <div class="episode-header">
+            <span>EPISODE 5 — Full Trace</span>
+            <span style="color:var(--accent);">Reward: 99 pts</span>
+        </div>
+        <div class="episode-body">
+
+            <!-- Stage 1 -->
+            <div class="episode-step">
+                <span class="step-badge system">STAGE 1: MEMORY</span>
+                <span class="step-content">Loads <code>context_graph.json</code>: user wants Nike/Adidas, size 10, budget $120, 2-day delivery. 4 prior runs stored. Lessons: "StockX has good Nike prices."</span>
+            </div>
+
+            <!-- Stage 2 -->
+            <div class="episode-step">
+                <span class="step-badge" style="background:#ffedd5;color:#c2410c;">STAGE 2: RL BANDIT</span>
+                <span class="step-content">Thompson Sampling draws from Beta distributions. StockX has alpha=3.2 (high from past wins). Samples: zappos=0.61, <strong>stockx=0.78</strong>, goat=0.42... StockX wins.<br>
+                <strong>Strategy:</strong> <code>{site: "stockx", query: "specific", filter: "brand_first", abandon: "after_1_fail"}</code></span>
+            </div>
+
+            <!-- Stage 3 -->
+            <div class="episode-step">
+                <span class="step-badge" style="background:#fef3c7;color:#92400e;">STAGE 3: AUTH</span>
+                <span class="step-content">Issues credential: sites=[zappos, 6pm, stockx, goat, nike, amazon], cap=$150, expires in 1hr. Run 5 > 3, so no human approval needed.</span>
+            </div>
+
+            <!-- Stage 4 -->
+            <div class="episode-step">
+                <span class="step-badge" style="background:#d1fae5;color:#065f46;">STAGE 4: SHOPPER</span>
+                <span class="step-content">Claude runs the ReAct loop (see detailed trace below).</span>
+            </div>
+
+            <!-- Stage 5 -->
+            <div class="episode-step">
+                <span class="step-badge" style="background:#d1fae5;color:#065f46;">STAGE 5: PAYMENT</span>
+                <span class="step-content">Auth check passes: $105 &le; $150 cap. x402 fires. Confirmation: <code>x402-sim-1a6f7378</code></span>
+            </div>
+
+            <!-- Stage 6 -->
+            <div class="episode-step">
+                <span class="step-badge" style="background:#fce7f3;color:#be185d;">STAGE 6: REWARD</span>
+                <span class="step-content">Events: purchase_completed (+40), full_match (+25), under_budget (+15), fast_delivery (+10), checkout (+10), efficiency_bonus (+15), step_penalty (-16) = <strong>99 pts</strong></span>
+            </div>
+
+            <!-- Stage 7 -->
+            <div class="episode-step">
+                <span class="step-badge" style="background:#dbeafe;color:#1e40af;">STAGE 7: REFLEXION</span>
+                <span class="step-content">Claude writes: <em>"StockX specific queries with brand-first filtering yield fast 4-step purchases."</em> Saved to memory for future runs.</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: THE ReAct LOOP (STAGE 4 ZOOM IN) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>3. The ReAct Loop (Stage 4 Zoomed In)</h2>
+    <p class="section-subtitle">This is where Claude actually shops. Each iteration: Think &rarr; Act &rarr; Observe &rarr; repeat until done.</p>
+
+    <div class="grid-2">
+        <!-- Good run -->
+        <div>
+            <h3 style="color:var(--success);">Example: Fast Run (4 steps, 99 pts)</h3>
+            <div class="episode-box">
+                <div class="episode-header">
+                    <span>Episode 5 — StockX</span>
+                    <span style="color:var(--accent);">4 steps</span>
+                </div>
+                <div class="episode-body">
+                    <div class="episode-step">
+                        <span class="step-badge thought">THOUGHT 1</span>
+                        <span class="step-content">Past memory says StockX has good Nike prices. Let me go there directly.</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 1</span>
+                        <span class="step-content"><code>NAVIGATE [https://stockx.com]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE 1</span>
+                        <span class="step-content">Navigated to https://stockx.com &mdash; page loaded.</span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge thought">THOUGHT 2</span>
+                        <span class="step-content">Search for Nike in size 10 under $120.</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 2</span>
+                        <span class="step-content"><code>SEARCH [Nike sneakers size 10]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE 2</span>
+                        <span class="step-content">Found 5 products. [1] Nike Air Griffey Max 1 | <strong>$105</strong> | Size 10 &check;</span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge thought">THOUGHT 3</span>
+                        <span class="step-content">$105 under budget. Let me verify all criteria match.</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 3</span>
+                        <span class="step-content"><code>EVALUATE [1]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE 3</span>
+                        <span class="step-content">Matches: [brand, price, size, delivery]. <strong>100% PERFECT MATCH.</strong></span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge thought">THOUGHT 4</span>
+                        <span class="step-content">All criteria met. Purchase immediately.</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 4</span>
+                        <span class="step-content"><code>PURCHASE [1]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE 4</span>
+                        <span class="step-content">Purchase confirmed! Nike Air Griffey Max 1 for $105.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slow run -->
+        <div>
+            <h3 style="color:var(--secondary);">Example: Slow Run (9 steps, 64 pts)</h3>
+            <div class="episode-box">
+                <div class="episode-header">
+                    <span>Episode 1 — GOAT (exploring)</span>
+                    <span style="color:var(--secondary);">9 steps</span>
+                </div>
+                <div class="episode-body">
+                    <div class="episode-step">
+                        <span class="step-badge thought">THOUGHT 1</span>
+                        <span class="step-content">No memory yet. Let me try GOAT as the bandit suggests.</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 1</span>
+                        <span class="step-content"><code>NAVIGATE [https://www.goat.com]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE 1</span>
+                        <span class="step-content">Page loaded. Ready to search.</span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 2</span>
+                        <span class="step-content"><code>SEARCH [Nike Adidas sneakers]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE 2</span>
+                        <span class="step-content">5 products found. ALL over $120 budget!</span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge thought">THOUGHT 3</span>
+                        <span class="step-content">Everything on GOAT is over budget. I need to abandon and try another site.</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 3</span>
+                        <span class="step-content"><code>ABANDON</code></span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 4</span>
+                        <span class="step-content"><code>NAVIGATE [https://stockx.com]</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 5-6</span>
+                        <span class="step-content"><code>SEARCH</code> &rarr; <code>EVALUATE</code></span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge observation">OBSERVE</span>
+                        <span class="step-content">Found $105 Nike, all criteria match.</span>
+                    </div>
+                    <hr style="border:none;border-top:1px dashed var(--border);margin:8px 0;">
+                    <div class="episode-step">
+                        <span class="step-badge action">ACTION 7-9</span>
+                        <span class="step-content"><code>PURCHASE</code> &rarr; Done (extra steps from ASK_MEMORY + evaluation)</span>
+                    </div>
+                    <div class="episode-step">
+                        <span class="step-badge" style="background:#fee2e2;color:#991b1b;">PENALTY</span>
+                        <span class="step-content">9 steps &times; -4 = <strong>-36 pts</strong> (vs only -16 for 4 steps)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The key insight -->
+    <div class="callout orange">
+        <div class="callout-title">Why does the curve go up?</div>
+        <p>Episode 1: Agent doesn't know which site is best &rarr; tries GOAT (expensive) &rarr; abandons &rarr; finds product on StockX &rarr; <strong>9 steps, 64 pts</strong>.<br>
+        Episode 10: Agent already knows StockX works &rarr; goes directly there &rarr; buys immediately &rarr; <strong>4 steps, 99 pts</strong>.<br>
+        The <strong>step penalty (-4/step)</strong> punishes inefficiency. The <strong>efficiency bonus (+15 for &le;4 steps)</strong> rewards directness. Together they create the upward curve.</p>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: THOMPSON SAMPLING EXPLAINED -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>4. Thompson Sampling (The RL Engine)</h2>
+    <p class="section-subtitle">How the bandit decides which strategy to try each episode.</p>
+
+    <!-- Visual explanation -->
+    <div class="diagram-container">
+        <div class="diagram-title">THOMPSON SAMPLING IN 4 STEPS</div>
+        <svg viewBox="0 0 800 260" style="max-width:800px; display:block; margin:0 auto;">
+            <!-- Step 1: Prior -->
+            <text x="100" y="25" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="700">1. START (Episode 1)</text>
+            <text x="100" y="42" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">All arms equal (Beta(1,1))</text>
+            <!-- flat bars -->
+            <rect x="30" y="55" width="28" height="40" rx="4" fill="rgba(167,139,250,0.4)" stroke="#a78bfa" stroke-width="1"/>
+            <rect x="62" y="55" width="28" height="40" rx="4" fill="rgba(167,139,250,0.4)" stroke="#a78bfa" stroke-width="1"/>
+            <rect x="94" y="55" width="28" height="40" rx="4" fill="rgba(167,139,250,0.4)" stroke="#a78bfa" stroke-width="1"/>
+            <rect x="126" y="55" width="28" height="40" rx="4" fill="rgba(167,139,250,0.4)" stroke="#a78bfa" stroke-width="1"/>
+            <rect x="158" y="55" width="28" height="40" rx="4" fill="rgba(167,139,250,0.4)" stroke="#a78bfa" stroke-width="1"/>
+            <text x="44" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">ZAP</text>
+            <text x="76" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">6PM</text>
+            <text x="108" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">STX</text>
+            <text x="140" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">GOAT</text>
+            <text x="172" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">NIKE</text>
+
+            <!-- Arrow -->
+            <path d="M 200 75 L 240 75" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Step 2: Sample -->
+            <text x="350" y="25" text-anchor="middle" fill="#FF6B35" font-size="12" font-weight="700">2. SAMPLE (random draw)</text>
+            <text x="350" y="42" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Each arm draws from its Beta dist</text>
+            <rect x="270" y="55" width="28" height="30" rx="4" fill="rgba(255,107,53,0.3)" stroke="#FF6B35" stroke-width="1"/>
+            <rect x="302" y="60" width="28" height="25" rx="4" fill="rgba(255,107,53,0.3)" stroke="#FF6B35" stroke-width="1"/>
+            <rect x="334" y="48" width="28" height="42" rx="4" fill="rgba(255,107,53,0.7)" stroke="#FF6B35" stroke-width="2"/>
+            <rect x="366" y="65" width="28" height="20" rx="4" fill="rgba(255,107,53,0.3)" stroke="#FF6B35" stroke-width="1"/>
+            <rect x="398" y="58" width="28" height="27" rx="4" fill="rgba(255,107,53,0.3)" stroke="#FF6B35" stroke-width="1"/>
+            <text x="348" y="46" text-anchor="middle" fill="#FF6B35" font-size="9" font-weight="700">HIGHEST!</text>
+            <text x="284" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">0.61</text>
+            <text x="316" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">0.52</text>
+            <text x="348" y="108" text-anchor="middle" fill="#FF6B35" font-size="8" font-weight="700">0.78</text>
+            <text x="380" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">0.42</text>
+            <text x="412" y="108" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">0.55</text>
+
+            <!-- Arrow -->
+            <path d="M 440 75 L 480 75" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+
+            <!-- Step 3: Choose -->
+            <text x="580" y="25" text-anchor="middle" fill="#00C9A7" font-size="12" font-weight="700">3. CHOOSE = StockX</text>
+            <text x="580" y="42" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Highest sample wins this episode</text>
+            <rect x="530" y="55" width="100" height="45" rx="10" fill="rgba(0,201,167,0.15)" stroke="#00C9A7" stroke-width="2"/>
+            <text x="580" y="80" text-anchor="middle" fill="#00C9A7" font-size="14" font-weight="700">StockX</text>
+            <text x="580" y="94" text-anchor="middle" fill="rgba(0,201,167,0.7)" font-size="9">site for this run</text>
+
+            <!-- Arrow down -->
+            <path d="M 580 105 L 580 130" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+
+            <!-- Step 4: Update -->
+            <text x="400" y="150" text-anchor="middle" fill="#f472b6" font-size="12" font-weight="700">4. AFTER EPISODE: Update with reward</text>
+            <text x="400" y="167" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Got 99 pts! StockX arm alpha increases. Next episode, StockX even more likely to be picked.</text>
+
+            <!-- Updated bars showing StockX growing -->
+            <rect x="220" y="180" width="28" height="35" rx="4" fill="rgba(244,114,182,0.3)" stroke="#f472b6" stroke-width="1"/>
+            <rect x="260" y="185" width="28" height="30" rx="4" fill="rgba(244,114,182,0.3)" stroke="#f472b6" stroke-width="1"/>
+            <rect x="300" y="170" width="28" height="55" rx="4" fill="rgba(244,114,182,0.7)" stroke="#f472b6" stroke-width="2"/>
+            <rect x="340" y="190" width="28" height="25" rx="4" fill="rgba(244,114,182,0.3)" stroke="#f472b6" stroke-width="1"/>
+            <rect x="380" y="185" width="28" height="30" rx="4" fill="rgba(244,114,182,0.3)" stroke="#f472b6" stroke-width="1"/>
+            <rect x="420" y="190" width="28" height="25" rx="4" fill="rgba(244,114,182,0.3)" stroke="#f472b6" stroke-width="1"/>
+            <text x="234" y="248" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">ZAP</text>
+            <text x="274" y="248" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">6PM</text>
+            <text x="314" y="248" text-anchor="middle" fill="#f472b6" font-size="8" font-weight="700">STX</text>
+            <text x="354" y="248" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">GOAT</text>
+            <text x="394" y="248" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">NIKE</text>
+            <text x="434" y="248" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">AMZ</text>
+
+            <!-- Annotation -->
+            <text x="314" y="166" text-anchor="middle" fill="#f472b6" font-size="9">grew!</text>
+
+            <defs><marker id="arrowhead" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="rgba(255,255,255,0.3)"/></marker></defs>
+        </svg>
+    </div>
+
+    <!-- Why it works -->
+    <div class="grid-2">
+        <div class="card highlight">
+            <h3>Why Thompson Sampling is perfect here</h3>
+            <ul>
+                <li><strong>Early episodes:</strong> All arms have wide distributions (Beta(1,1) is uniform). Random samples are all over the place &rarr; agent <em>explores</em> different sites.</li>
+                <li><strong>Later episodes:</strong> Winning arms have peaked distributions (Beta(5,2) peaks around 0.7). They consistently sample high &rarr; agent <em>exploits</em> what works.</li>
+                <li><strong>No tuning:</strong> Unlike epsilon-greedy (need to set epsilon), Thompson Sampling figures out explore/exploit automatically.</li>
+                <li><strong>Works with 10 samples:</strong> Deep RL (PPO, DQN) needs thousands of episodes. Thompson Sampling converges in 3-5.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>The 4 Decomposed Bandits</h3>
+            <p>Instead of 1 bandit with 6&times;3&times;4&times;3 = <strong>216 combinations</strong> (way too many for 10 runs), we split into 4 independent bandits:</p>
+            <br>
+            <div class="bandit-viz">
+                <div class="bandit-group">
+                    <h4>Site (6 arms)</h4>
+                    <div class="bandit-bar-row"><span class="bandit-label">StockX</span><div class="bandit-bar-bg"><div class="bandit-bar-fill high" style="width:75%;">0.25</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">Zappos</span><div class="bandit-bar-bg"><div class="bandit-bar-fill high" style="width:66%;">0.22</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">6pm</span><div class="bandit-bar-bg"><div class="bandit-bar-fill mid" style="width:42%;">0.14</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">Nike</span><div class="bandit-bar-bg"><div class="bandit-bar-fill low" style="width:42%;">0.14</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">GOAT</span><div class="bandit-bar-bg"><div class="bandit-bar-fill low" style="width:36%;">0.12</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">Amazon</span><div class="bandit-bar-bg"><div class="bandit-bar-fill low" style="width:39%;">0.13</div></div></div>
+                </div>
+                <div class="bandit-group">
+                    <h4>Query Style (3 arms)</h4>
+                    <div class="bandit-bar-row"><span class="bandit-label">Specific</span><div class="bandit-bar-bg"><div class="bandit-bar-fill high" style="width:84%;">0.42</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">Broad</span><div class="bandit-bar-bg"><div class="bandit-bar-fill mid" style="width:60%;">0.30</div></div></div>
+                    <div class="bandit-bar-row"><span class="bandit-label">Moderate</span><div class="bandit-bar-bg"><div class="bandit-bar-fill mid" style="width:56%;">0.28</div></div></div>
+                </div>
+            </div>
+            <p style="font-size:0.8rem; color:var(--muted); margin-top:12px;">Each bandit independently learns its best arm. Total arms = 6+3+4+3 = 16. Each arm gets ~2-3 updates in 10 episodes &mdash; enough to converge.</p>
+        </div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: REWARD FUNCTION -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>5. Reward Function (How Runs Are Scored)</h2>
+    <p class="section-subtitle">This is the signal the RL bandit learns from. Designed to make the learning visible in 10 episodes.</p>
+
+    <div class="grid-2">
+        <div>
+            <h3>Reward Breakdown: Best Run (99 pts)</h3>
+            <div class="reward-stack" style="margin-top:12px;">
+                <div class="reward-row">
+                    <span class="reward-label">purchase_completed</span>
+                    <div class="reward-bar positive" style="width:200px;">+40</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">item_found_full_match</span>
+                    <div class="reward-bar positive" style="width:125px;">+25</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">under_budget</span>
+                    <div class="reward-bar positive" style="width:75px;">+15</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">fast_delivery</span>
+                    <div class="reward-bar positive" style="width:50px;">+10</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">checkout_reached</span>
+                    <div class="reward-bar positive" style="width:50px;">+10</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">efficiency_bonus (&le;4 steps)</span>
+                    <div class="reward-bar bonus" style="width:75px;">+15</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">step_penalty (4 &times; -4)</span>
+                    <div class="reward-bar negative" style="width:80px;">-16</div>
+                </div>
+            </div>
+            <div style="margin-top:12px; padding:12px; background:#f0fdf4; border-radius:8px; font-weight:700; color:var(--success);">
+                TOTAL = 99 pts
+            </div>
+        </div>
+
+        <div>
+            <h3>Reward Breakdown: Worst Run (64 pts)</h3>
+            <div class="reward-stack" style="margin-top:12px;">
+                <div class="reward-row">
+                    <span class="reward-label">purchase_completed</span>
+                    <div class="reward-bar positive" style="width:200px;">+40</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">item_found_full_match</span>
+                    <div class="reward-bar positive" style="width:125px;">+25</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">under_budget</span>
+                    <div class="reward-bar positive" style="width:75px;">+15</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">fast_delivery</span>
+                    <div class="reward-bar positive" style="width:50px;">+10</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">checkout_reached</span>
+                    <div class="reward-bar positive" style="width:50px;">+10</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">efficiency_bonus</span>
+                    <div class="reward-bar" style="width:50px; background:#e5e7eb; color:#6b7280;">+0</div>
+                </div>
+                <div class="reward-row">
+                    <span class="reward-label">step_penalty (9 &times; -4)</span>
+                    <div class="reward-bar negative" style="width:180px;">-36</div>
+                </div>
+            </div>
+            <div style="margin-top:12px; padding:12px; background:#fef2f2; border-radius:8px; font-weight:700; color:var(--danger);">
+                TOTAL = 64 pts (wasted 5 extra steps exploring)
+            </div>
+        </div>
+    </div>
+
+    <div class="callout green" style="margin-top:24px;">
+        <div class="callout-title">The design insight</div>
+        <p>Both runs bought the same product! The only difference is <strong>efficiency</strong>. The step penalty (-4/step) + efficiency bonus (+15 for &le;4 steps) creates a 35-point spread between "explored then bought" vs "went directly and bought." This is what makes the RL learning <em>visible</em> on the reward curve.</p>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 6: LIVE SCRAPING -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>6. Live Web Scraping Pipeline</h2>
+    <p class="section-subtitle">How the agent gets real product data from actual websites.</p>
+
+    <div class="diagram-container">
+        <div class="diagram-title">SCRAPING PIPELINE (e.g., StockX)</div>
+        <svg viewBox="0 0 800 140" style="max-width:800px; display:block; margin:0 auto;">
+            <!-- Step 1 -->
+            <rect x="20" y="30" width="140" height="70" rx="10" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="90" y="55" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700">1. Jina.ai Reader</text>
+            <text x="90" y="72" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">GET r.jina.ai/stockx.com</text>
+            <text x="90" y="86" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">Returns markdown text</text>
+
+            <path d="M 165 65 L 195 65" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Step 2 -->
+            <rect x="200" y="30" width="140" height="70" rx="10" fill="rgba(255,107,53,0.15)" stroke="#FF6B35" stroke-width="1.5"/>
+            <text x="270" y="55" text-anchor="middle" fill="#FF6B35" font-size="10" font-weight="700">2. Regex Parser</text>
+            <text x="270" y="72" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Site-specific patterns</text>
+            <text x="270" y="86" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">Extract name/price/rating</text>
+
+            <path d="M 345 65 L 375 65" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Step 3 -->
+            <rect x="380" y="30" width="140" height="70" rx="10" fill="rgba(0,201,167,0.15)" stroke="#00C9A7" stroke-width="1.5"/>
+            <text x="450" y="55" text-anchor="middle" fill="#00C9A7" font-size="10" font-weight="700">3. Normalize</text>
+            <text x="450" y="72" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Brand title-case fix</text>
+            <text x="450" y="86" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">Add size/delivery fields</text>
+
+            <path d="M 525 65 L 555 65" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Step 4 -->
+            <rect x="560" y="30" width="140" height="70" rx="10" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="630" y="55" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">4. Cache + Return</text>
+            <text x="630" y="72" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Cached per episode</text>
+            <text x="630" y="86" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">5 products max</text>
+
+            <!-- Fallback -->
+            <rect x="200" y="110" width="140" height="25" rx="6" fill="rgba(244,114,182,0.15)" stroke="#f472b6" stroke-width="1"/>
+            <text x="270" y="127" text-anchor="middle" fill="#f472b6" font-size="8">Fallback: Claude extracts</text>
+            <path d="M 270 100 L 270 108" stroke="#f472b6" stroke-width="1" stroke-dasharray="3,2"/>
+        </svg>
+    </div>
+
+    <div class="grid-2">
+        <div class="card success">
+            <h3>LIVE sites (real data)</h3>
+            <table class="nice-table">
+                <thead><tr><th>Site</th><th>Parser</th><th>What it gets</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Zappos</strong></td><td>Regex (markdown links)</td><td>Name, price, rating, URL</td></tr>
+                    <tr><td><strong>6pm</strong></td><td>Same regex (Zappos-owned)</td><td>Discount prices, ratings</td></tr>
+                    <tr><td><strong>StockX</strong></td><td>Regex ("Lowest Ask $X")</td><td>Resale names, market prices</td></tr>
+                    <tr><td><strong>GOAT</strong></td><td>Regex ("[Name $X ![")</td><td>Auth'd sneakers, prices</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card warning">
+            <h3>SIMULATED sites (can't scrape)</h3>
+            <table class="nice-table">
+                <thead><tr><th>Site</th><th>Why simulated</th><th>Fallback</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Nike.com</strong></td><td>JS-rendered, no useful HTML</td><td>6 Nike products, realistic prices</td></tr>
+                    <tr><td><strong>Amazon</strong></td><td>Bot detection blocks scrape</td><td>7 mixed products, fast delivery</td></tr>
+                </tbody>
+            </table>
+            <p style="font-size:0.85rem; color:var(--muted); margin-top:8px;">The RL bandit doesn't know which sites are live vs simulated. It just learns which produce higher rewards.</p>
+        </div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 7: THE HALLUCINATION FIX -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>7. The Hallucination Fix (Critical Bug We Solved)</h2>
+    <p class="section-subtitle">Without this fix, 6/10 episodes produced 0 reward because Claude "shopped" in its imagination.</p>
+
+    <div class="compare-grid">
+        <div class="compare-col bad">
+            <h3 style="color:var(--danger);">Before Fix (Broken)</h3>
+            <div class="code-block" style="font-size:0.78rem;">
+Thought: I'll search for shoes
+Action: SEARCH nike shoes
+<span style="color:#ef4444;">Observation: Found 3 products:        &larr; HALLUCINATED
+  [0] Nike Pegasus | $99              &larr; NOT REAL
+  [1] Nike Vomero | $149              &larr; MADE UP</span>
+Thought: Let me buy #0
+Action: PURCHASE 0
+<span style="color:#ef4444;">Observation: Purchase confirmed!       &larr; FAKE
+Done: Bought Nike Pegasus for $99     &larr; NEVER HAPPENED</span>
+</div>
+            <p style="margin-top:12px; font-size:0.85rem;"><strong>Problem:</strong> Claude generates the entire Thought/Action/Observation sequence in one shot. The real environment is never called. The agent "shops" in its imagination.</p>
+        </div>
+        <div class="compare-col good">
+            <h3 style="color:var(--success);">After Fix (Working)</h3>
+            <div class="code-block" style="font-size:0.78rem;">
+Thought: I'll search for shoes
+Action: SEARCH nike shoes
+<span style="color:#a6e3a1;">[STOP]  &larr; Claude is forced to stop here</span>
+
+<span class="comment"># System calls real environment
+# Jina.ai fetches stockx.com
+# Returns REAL products with REAL prices</span>
+
+<span style="color:#a6e3a1;">Observation: Found 5 products:         &larr; REAL DATA
+  [0] Nike Griffey Max 1 | $105       &larr; FROM STOCKX
+  [1] Nike AF1 Low | $75              &larr; ACTUAL PRICE</span>
+</div>
+            <p style="margin-top:12px; font-size:0.85rem;"><strong>Fix:</strong> <code>stop_sequences=["Observation:"]</code> in the API call. Claude literally cannot generate "Observation:" &mdash; the API stops it, returns control to us, we call the real environment, then feed the real observation back.</p>
+        </div>
+    </div>
+
+    <div class="callout blue">
+        <div class="callout-title">The one line that fixed everything</div>
+        <div class="code-block">
+response = client.messages.create(
+    model=<span class="string">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="number">600</span>,
+<span class="highlight-line">    stop_sequences=[<span class="string">"Observation:"</span>, <span class="string">"observation:"</span>],  <span class="comment"># THIS LINE</span></span>
+    system=build_system_prompt(context_graph, history_summary),
+    messages=messages,
+)
+</div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 8: AGENT-TO-AGENT COMMUNICATION -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>8. Agent-to-Agent Communication</h2>
+    <p class="section-subtitle">The Shopper Agent can query the Memory Agent mid-run. This is a real inter-agent protocol.</p>
+
+    <div class="diagram-container">
+        <div class="diagram-title">ASK_MEMORY PROTOCOL (mid-episode communication)</div>
+        <svg viewBox="0 0 700 180" style="max-width:700px; display:block; margin:0 auto;">
+            <!-- Shopper Agent -->
+            <rect x="50" y="20" width="120" height="50" rx="10" fill="rgba(0,201,167,0.15)" stroke="#00C9A7" stroke-width="2"/>
+            <text x="110" y="42" text-anchor="middle" fill="#00C9A7" font-size="11" font-weight="700">Shopper Agent</text>
+            <text x="110" y="58" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">(Claude, mid-run)</text>
+
+            <!-- Memory Agent -->
+            <rect x="500" y="20" width="120" height="50" rx="10" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="2"/>
+            <text x="560" y="42" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">Memory Agent</text>
+            <text x="560" y="58" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">(context_graph.json)</text>
+
+            <!-- Request arrow -->
+            <path d="M 170 45 L 500 45" stroke="#00C9A7" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <rect x="220" y="32" width="220" height="22" rx="4" fill="rgba(0,201,167,0.1)"/>
+            <text x="330" y="47" text-anchor="middle" fill="#00C9A7" font-size="8.5">"What worked on StockX before?"</text>
+
+            <!-- Response arrow -->
+            <path d="M 500 100 L 170 100" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <rect x="195" y="85" width="280" height="32" rx="4" fill="rgba(167,139,250,0.1)"/>
+            <text x="335" y="99" text-anchor="middle" fill="#a78bfa" font-size="8">Run 5: stockx &rarr; 99pts (purchased)</text>
+            <text x="335" y="112" text-anchor="middle" fill="#a78bfa" font-size="8">Lesson: "StockX brand-first = fast purchases"</text>
+
+            <!-- Result -->
+            <rect x="50" y="130" width="200" height="35" rx="8" fill="rgba(0,201,167,0.1)" stroke="#00C9A7" stroke-width="1"/>
+            <text x="150" y="148" text-anchor="middle" fill="#00C9A7" font-size="9" font-weight="600">Shopper decides: go to StockX</text>
+            <text x="150" y="160" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="7.5">Informed by Memory, not guessing</text>
+        </svg>
+    </div>
+
+    <div class="callout">
+        <div class="callout-title">Why this matters for "Internet of Agents"</div>
+        <p>This isn't just sequential handoff (Agent A finishes &rarr; Agent B starts). The Shopper Agent <em>chooses</em> to query Memory <em>during its reasoning loop</em> when it needs information. It's a synchronous request/response protocol between two running agents. This is the "agent-to-agent" theme the hackathon is about.</p>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 9: SAFETY (AUTH + PAYMENT) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>9. Safety: Auth + Payment Chain</h2>
+    <p class="section-subtitle">How we ensure the agent can't overspend or buy from unauthorized sites.</p>
+
+    <div class="diagram-container">
+        <div class="diagram-title">PAYMENT AUTHORIZATION FLOW</div>
+        <svg viewBox="0 0 800 160" style="max-width:800px; display:block; margin:0 auto;">
+            <!-- Auth issues credential -->
+            <rect x="30" y="30" width="150" height="80" rx="12" fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="2"/>
+            <text x="105" y="55" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="700">Auth Agent</text>
+            <text x="105" y="72" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Issues credential:</text>
+            <text x="105" y="85" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">cap=$150, sites=[6]</text>
+            <text x="105" y="98" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">expires=1hr</text>
+
+            <path d="M 185 70 L 230 70" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Credential -->
+            <rect x="235" y="45" width="100" height="50" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="285" y="68" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="9" font-weight="600">Credential</text>
+            <text x="285" y="82" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">immutable token</text>
+
+            <path d="M 340 70 L 390 70" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- Verification -->
+            <rect x="395" y="20" width="160" height="100" rx="12" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="2"/>
+            <text x="475" y="42" text-anchor="middle" fill="#10b981" font-size="11" font-weight="700">Payment Agent</text>
+            <text x="475" y="58" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Checks:</text>
+            <text x="475" y="72" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">1. Session valid?</text>
+            <text x="475" y="84" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">2. Site authorized?</text>
+            <text x="475" y="96" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">3. Amount &le; cap?</text>
+            <text x="475" y="108" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">4. Human approval (run &le;3)?</text>
+
+            <path d="M 560 70 L 610 70" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+            <!-- x402 -->
+            <rect x="615" y="35" width="140" height="70" rx="12" fill="rgba(16,185,129,0.25)" stroke="#10b981" stroke-width="2"/>
+            <text x="685" y="60" text-anchor="middle" fill="#10b981" font-size="13" font-weight="800">x402</text>
+            <text x="685" y="78" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Payment confirmed</text>
+            <text x="685" y="92" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">$105 USDC charged</text>
+
+            <!-- Rejection path -->
+            <path d="M 475 125 L 475 145" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <text x="475" y="156" text-anchor="middle" fill="#ef4444" font-size="8.5">Any check fails &rarr; BLOCKED</text>
+        </svg>
+    </div>
+
+    <div class="callout green">
+        <div class="callout-title">The safety invariant</div>
+        <p>The credential is issued ONCE at episode start. It cannot be modified mid-run. Even if Claude is "jailbroken" and tries to spend $500 on a shady site, the Payment Agent's verification will reject it. <strong>No agent can escalate its own permissions.</strong></p>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 10: DESIGN DECISIONS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>10. Design Decisions (For Judge Q&A)</h2>
+    <p class="section-subtitle">Why we chose X over Y. Good ammunition for defending the project.</p>
+
+    <table class="nice-table">
+        <thead>
+            <tr><th>Decision</th><th>Alternative</th><th>Why We Chose This</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Thompson Sampling</strong></td>
+                <td>Epsilon-greedy, UCB, PPO/DQN</td>
+                <td>No hyperparams. Natural explore/exploit. Converges in 3-5 runs (deep RL needs thousands).</td>
+            </tr>
+            <tr>
+                <td><strong>4 decomposed bandits</strong></td>
+                <td>Single bandit (216 arms)</td>
+                <td>16 total arms vs 216. Each gets 2-3 updates in 10 runs. Mathematically sound.</td>
+            </tr>
+            <tr>
+                <td><strong>Jina.ai reader</strong></td>
+                <td>Playwright, Selenium</td>
+                <td>Free, no browser needed. 10 episodes in 2 min vs 20+ with real browsers.</td>
+            </tr>
+            <tr>
+                <td><strong>ReAct loop</strong></td>
+                <td>Structured tool-use</td>
+                <td>Judges can read Claude's reasoning. More impressive. Shows genuine thought.</td>
+            </tr>
+            <tr>
+                <td><strong>stop_sequences</strong></td>
+                <td>Post-hoc validation</td>
+                <td>Prevents hallucination at source. API-level guarantee, not hope.</td>
+            </tr>
+            <tr>
+                <td><strong>Auth before shopping</strong></td>
+                <td>Check only at payment</td>
+                <td>Defense in depth. Credential is immutable &mdash; can't be jailbroken mid-run.</td>
+            </tr>
+            <tr>
+                <td><strong>Reflexion lessons</strong></td>
+                <td>Pure numeric signal</td>
+                <td>Interpretable. "Avoid GOAT for budget shoppers" is readable. Also feeds into future system prompts.</td>
+            </tr>
+            <tr>
+                <td><strong>Step penalty -4/step</strong></td>
+                <td>Flat reward</td>
+                <td>Creates visible learning curve. Without it, all successful runs score the same.</td>
+            </tr>
+            <tr>
+                <td><strong>Live + simulated hybrid</strong></td>
+                <td>All one or the other</td>
+                <td>4 live sites prove it's real. 2 simulated show graceful failure handling.</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 11: INTERNET OF AGENTS THEME -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>11. "Internet of Agents" Theme Mapping</h2>
+    <p class="section-subtitle">How STRIDE maps to each hackathon theme.</p>
+
+    <div class="grid-2">
+        <div class="card highlight">
+            <h3>AX (Agent Experience)</h3>
+            <span class="tag tag-purple">NAVIGATE action</span>
+            <p style="margin-top:8px;">The agent browses <strong>real URLs</strong> &mdash; not internal IDs. It sees <code>https://stockx.com</code>, not <code>store_id=3</code>. The internet IS its interface.</p>
+        </div>
+        <div class="card highlight">
+            <h3>Agent-to-Agent Protocols</h3>
+            <span class="tag tag-blue">ASK_MEMORY action</span>
+            <p style="margin-top:8px;">Shopper queries Memory <strong>mid-run</strong> via structured request/response. Real-time inter-agent communication, not just sequential handoff.</p>
+        </div>
+        <div class="card highlight">
+            <h3>Agentic Payments (x402)</h3>
+            <span class="tag tag-green">Payment Agent</span>
+            <p style="margin-top:8px;">Agent autonomously authorizes purchases via x402 protocol (HTTP 402 &rarr; sign &rarr; pay). Scoped credentials ensure safety.</p>
+        </div>
+        <div class="card highlight">
+            <h3>Agentic Commerce</h3>
+            <span class="tag tag-orange">End-to-end autonomy</span>
+            <p style="margin-top:8px;">Discovery &rarr; evaluation &rarr; decision &rarr; purchase. The agent makes real buying decisions, learning to optimize over time.</p>
+        </div>
+    </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 12: FILE MAP -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section>
+    <h2>12. File Map</h2>
+    <p class="section-subtitle">The full backend in ~1,400 lines of Python. Here's what each file does.</p>
+
+    <div class="grid-2">
+        <div class="card">
+            <h3>Agent Files</h3>
+            <table class="nice-table">
+                <thead><tr><th>File</th><th>Role</th></tr></thead>
+                <tbody>
+                    <tr><td><code>run_loop.py</code></td><td>Orchestrator. Runs 10 episodes, wires agents.</td></tr>
+                    <tr><td><code>shopping_agent.py</code></td><td>Claude ReAct loop + action dispatcher.</td></tr>
+                    <tr><td><code>memory_agent.py</code></td><td>Context persistence, cohort priors.</td></tr>
+                    <tr><td><code>rl_bandit.py</code></td><td>Thompson Sampling, 4 bandits.</td></tr>
+                    <tr><td><code>auth_agent.py</code></td><td>Scoped credential issuance/verification.</td></tr>
+                    <tr><td><code>payment_agent.py</code></td><td>x402 payment execution.</td></tr>
+                    <tr><td><code>reward.py</code></td><td>Scoring function (the RL signal).</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card">
+            <h3>Infrastructure Files</h3>
+            <table class="nice-table">
+                <thead><tr><th>File</th><th>Role</th></tr></thead>
+                <tbody>
+                    <tr><td><code>environment.py</code></td><td>Simulated stores + live scraping bridge.</td></tr>
+                    <tr><td><code>live_scraper.py</code></td><td>Jina.ai reader + regex extraction.</td></tr>
+                    <tr><td><code>app.py</code></td><td>Streamlit dashboard (Swati).</td></tr>
+                    <tr><td><code>context_graph.json</code></td><td>Persistent memory (schema v1.0).</td></tr>
+                    <tr><td><code>run_results.json</code></td><td>Dashboard data (schema v1.0).</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p><strong>STRIDE</strong> &mdash; Strategic Thompson-sampling Reinforcement for Internet Deal Exploration</p>
+    <p style="margin-top:8px;">Built for the Internet of Agents Hackathon by AGI House / Coframe</p>
+    <p style="margin-top:4px;">Rohit &amp; Swati &middot; May 2026</p>
+</div>
+
+</body>
+</html>

@@ -229,14 +229,16 @@ class ShoppingEnvironment:
         Results are cached so a single episode doesn't re-fetch.
         Normalizes to environment.py product format.
         """
-        if store_name in _live_cache:
-            return _live_cache[store_name]
+        cache_key = f"{store_name}:{'+'.join(sorted(preferences.get('brands', [])))}"
+        if cache_key in _live_cache:
+            return _live_cache[cache_key]
 
         try:
             from live_scraper import scrape_real_products
             size = preferences.get("size", 10)
             budget = preferences.get("budget", 120)
-            raw = scrape_real_products(store_name, size=size, budget=budget)
+            brands = preferences.get("brands", ["Nike", "Adidas"])
+            raw = scrape_real_products(store_name, size=size, budget=budget, brands=brands)
             if not raw:
                 return []
 
@@ -254,7 +256,7 @@ class ShoppingEnvironment:
                     "url": p.get("url", ""),
                     "live": True,              # tag so dashboard can show "LIVE" badge
                 })
-            _live_cache[store_name] = normalized
+            _live_cache[cache_key] = normalized
             return normalized
         except Exception as e:
             print(f"[LiveMode] Error: {e}")

@@ -18,14 +18,30 @@ import anthropic
 config = dotenv_values(".env")
 client = anthropic.Anthropic(api_key=config["ANTHROPIC_API_KEY"])
 
-SEARCH_URLS = {
-    "zappos":  "https://www.zappos.com/search?term=nike+adidas+running+sneakers+men",
-    "6pm":     "https://www.6pm.com/men-running-shoes/CK_XARC81wEY0O4BwAEC4gIEAQIDGA.zso",
-    "stockx":  "https://stockx.com/sneakers/nike",
-    "goat":    "https://www.goat.com/sneakers/brand/nike",
-    "nike":    "https://www.nike.com/w/mens-running-shoes-37v7jznik1zy7ok",
-    "amazon":  "https://www.amazon.com/s?k=nike+adidas+running+shoes+men",
-}
+def _build_search_url(site: str, brands: list[str]) -> str:
+    """
+    Build a dynamic search URL based on user's brand preferences.
+    This way if the user wants Yeezy, we search for Yeezy — not hardcoded Nike.
+    """
+    brand_query = "+".join(b.lower() for b in brands) if brands else "sneakers"
+
+    # StockX blocks search pages with CAPTCHA — use category pages instead
+    # GOAT search works well
+    first_brand = brands[0].lower() if brands else "nike"
+    stockx_brand_map = {
+        "nike": "nike", "adidas": "adidas", "yeezy": "adidas-yeezy",
+        "jordan": "jordan", "new balance": "new-balance", "puma": "puma",
+    }
+    stockx_brand = stockx_brand_map.get(first_brand, first_brand)
+    SITE_URL_TEMPLATES = {
+        "zappos":  f"https://www.zappos.com/search?term={brand_query}+sneakers+men",
+        "6pm":     f"https://www.6pm.com/search?term={brand_query}+sneakers+men",
+        "stockx":  f"https://stockx.com/sneakers/{stockx_brand}",
+        "goat":    f"https://www.goat.com/search?query={brand_query}",
+        "nike":    "https://www.nike.com/w/mens-running-shoes-37v7jznik1zy7ok",
+        "amazon":  f"https://www.amazon.com/s?k={brand_query}+sneakers+men",
+    }
+    return SITE_URL_TEMPLATES.get(site, SITE_URL_TEMPLATES["zappos"])
 
 def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
     """
@@ -35,8 +51,9 @@ def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
     """
     products = []
     # Handles both regular price and "On sale for $X" formats
+    # Match ANY brand name (1-3 words before the dash) — not hardcoded to Nike/Adidas
     pattern = re.compile(
-        r'\[(Nike|Adidas|New Balance|HOKA|Brooks|Asics|Reebok|adidas) - ([^.]+)\.'  # brand - name
+        r'\[([A-Za-z][A-Za-z &]+?) - ([^.]+)\.'                                    # brand - name (flexible)
         r'[^\]]*?(?:On sale for )?\$([\d,]+\.?\d*)\.'                               # price (sale or regular)
         r'.*?([\d.]+) out of 5 stars\]'                                              # rating
         r'\((https://[^\)]+)\)',                                                      # url
@@ -63,9 +80,10 @@ def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
 
 
 def _parse_stockx(text: str) -> list[dict]:
-    """Parse StockX: 'Nike Product Name Lowest Ask $PRICE'"""
+    """Parse StockX: 'Product Name Lowest Ask $PRICE'"""
     products = []
-    pattern = re.compile(r'(Nike [^\]]{5,60}?) Lowest Ask \$(\d+)', re.IGNORECASE)
+    # Match product names (must start with a letter, no URLs/image junk)
+    pattern = re.compile(r'([A-Za-z][A-Za-z0-9 \'"&-]{5,80}?) Lowest Ask \$(\d+)', re.IGNORECASE)
     seen = set()
     for m in pattern.finditer(text):
         name, price_str = m.groups()
@@ -73,11 +91,17 @@ def _parse_stockx(text: str) -> list[dict]:
         if name in seen:
             continue
         seen.add(name)
+        # Detect brand from product name
+        brand = "Unknown"
+        for b in ("Nike", "Adidas", "Yeezy", "New Balance", "Jordan", "HOKA", "Asics", "Puma", "Reebok"):
+            if b.lower() in name.lower():
+                brand = b
+                break
         products.append({
             "name": name,
             "price": float(price_str),
-            "rating": 4.5,  # StockX doesn't show ratings; use default
-            "brand": "Nike",
+            "rating": 4.5,
+            "brand": brand,
             "url": "",
         })
         if len(products) >= 6:
@@ -88,7 +112,8 @@ def _parse_stockx(text: str) -> list[dict]:
 def _parse_goat(text: str) -> list[dict]:
     """Parse GOAT: '[Product Name $PRICE ![Image'"""
     products = []
-    pattern = re.compile(r'\[([^\]]*?Nike[^\]]*?) \$(\d+) !\[', re.IGNORECASE)
+    # Match any product with a price — not limited to Nike
+    pattern = re.compile(r'\[([^\]]{5,80}?) \$(\d+) !\[', re.IGNORECASE)
     seen = set()
     for m in pattern.finditer(text):
         raw_name, price_str = m.groups()
@@ -98,11 +123,17 @@ def _parse_goat(text: str) -> list[dict]:
         if name in seen:
             continue
         seen.add(name)
+        # Detect brand from product name
+        brand = "Unknown"
+        for b in ("Nike", "Adidas", "Yeezy", "New Balance", "Jordan", "HOKA", "Asics", "Puma", "Reebok"):
+            if b.lower() in name.lower():
+                brand = b
+                break
         products.append({
             "name": name,
             "price": float(price_str),
-            "rating": 4.5,  # GOAT doesn't show ratings; use default
-            "brand": "Nike",
+            "rating": 4.5,
+            "brand": brand,
             "url": "",
         })
         if len(products) >= 6:
@@ -143,13 +174,22 @@ Return ONLY this format (no markdown, no explanation):
 [{{"name": "Product Name", "price": 99.99, "rating": 4.5, "brand": "Nike", "url": "https://..."}}]"""
 
 
-def scrape_real_products(site: str, size: int = 10, budget: int = 120) -> list[dict]:
+def scrape_real_products(site: str, size: int = 10, budget: int = 120,
+                         brands: list[str] = None) -> list[dict]:
     """
     Scrape real products from a retail site.
     Returns list of product dicts in environment.py format.
     Falls back to empty list on any failure.
+
+    Args:
+        site: which site to scrape (zappos, 6pm, stockx, goat)
+        size: user's shoe size
+        budget: max price
+        brands: user's preferred brands — used to build dynamic search URL
     """
-    url = SEARCH_URLS.get(site, SEARCH_URLS["zappos"])
+    if brands is None:
+        brands = ["Nike", "Adidas"]
+    url = _build_search_url(site, brands)
     jina_url = f"https://r.jina.ai/{url}"
 
     try:
