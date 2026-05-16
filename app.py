@@ -499,6 +499,78 @@ elif st.session_state.screen == "results":
 
     st.markdown("")
 
+    # ── Purchases Gallery ───────────────────────────────────────────────────
+    st.markdown('<div class="section-header"><h3>🛍️ What STRIDE Bought</h3></div>', unsafe_allow_html=True)
+    st.caption("Products purchased across all runs — with links to the real product pages")
+
+    purchased = [r for r in results if r.get("product") and r["outcome"] == "purchased"]
+
+    if purchased:
+        # Show in rows of 3
+        for i in range(0, len(purchased), 3):
+            cols = st.columns(3)
+            for j, col in enumerate(cols):
+                if i + j < len(purchased):
+                    r = purchased[i + j]
+                    prod = r["product"]
+                    pay = r.get("payment", {})
+                    name = prod.get("name", "Unknown")
+                    price = prod.get("price", "?")
+                    brand = prod.get("brand", "?")
+                    site = r["strategy"]["site"]
+                    reward = r["reward"]
+                    live = prod.get("live", False)
+                    url = prod.get("url", "")
+
+                    # Generate search URL if no direct URL
+                    if not url:
+                        search_name = name.replace(" ", "+")
+                        url = f"https://www.google.com/search?q={search_name}+sneakers&tbm=shop"
+
+                    # Generate image search URL for thumbnail
+                    img_search = name.replace(" ", "+")
+                    img_url = f"https://www.google.com/search?q={img_search}&tbm=isch"
+
+                    # Payment status
+                    if pay.get("success"):
+                        tx = pay.get("transaction_hash", "")
+                        if tx:
+                            pay_html = f'<a href="https://sepolia.basescan.org/tx/{tx}" target="_blank" style="color: #10b981; text-decoration: none; font-size: 0.75rem;">View on BaseScan ↗</a>'
+                        else:
+                            pay_html = '<span style="color: #10b981; font-size: 0.75rem;">x402 Confirmed</span>'
+                    else:
+                        pay_html = '<span style="color: #ef4444; font-size: 0.75rem;">Payment failed</span>'
+
+                    source_tag = f'<span class="tag-green tag" style="font-size: 0.65rem;">LIVE</span>' if live else '<span class="tag" style="font-size: 0.65rem;">SIM</span>'
+
+                    with col:
+                        st.markdown(f"""
+                        <div class="card" style="min-height: 200px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="color: #8b95a5; font-size: 0.7rem;">RUN {r['run']}</span>
+                                <span class="tag" style="font-size: 0.65rem;">{site}</span>
+                            </div>
+                            <div style="color: #e2e8f0; font-weight: 600; font-size: 1rem; margin-bottom: 6px;">{name[:40]}</div>
+                            <div style="margin: 8px 0;">
+                                <span style="color: #60a5fa; font-size: 1.3rem; font-weight: 700;">${price}</span>
+                                <span style="color: #8b95a5; font-size: 0.8rem; margin-left: 8px;">{brand}</span>
+                                {source_tag}
+                            </div>
+                            <div style="margin: 8px 0;">
+                                <span class="tag-amber tag" style="font-size: 0.65rem;">{reward} pts</span>
+                            </div>
+                            <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                <a href="{url}" target="_blank" style="color: #60a5fa; text-decoration: none; font-size: 0.75rem; background: #1e2a3a; padding: 4px 10px; border-radius: 6px;">View Product ↗</a>
+                                {pay_html}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+    else:
+        st.caption("No purchases yet.")
+
+    st.markdown("")
+
     # ── Reward Curve ────────────────────────────────────────────────────────
     st.markdown('<div class="section-header"><h3>📈 Reward Curve</h3></div>', unsafe_allow_html=True)
     st.caption("Thompson Sampling learns which site + strategy combo works best for you")
