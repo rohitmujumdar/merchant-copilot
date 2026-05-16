@@ -1,0 +1,929 @@
+[
+  {
+    "run": 1,
+    "strategy": {
+      "site": "nike",
+      "query_style": "specific",
+      "filter_strategy": "brand_first",
+      "abandon_threshold": "after_2_fails"
+    },
+    "reward": 69,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "item_found_partial": 10,
+      "checkout_reached": 15,
+      "step_penalty": -16
+    },
+    "steps": 8,
+    "outcome": "purchased",
+    "product": {
+      "name": "Adidas Ultraboost Light",
+      "brand": "Adidas",
+      "price": 118,
+      "rating": 4.7,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 2,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 118,
+      "product": "Adidas Ultraboost Light",
+      "reason": "Purchase $118 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering the Nike store and searching for sneakers with specific query including brand, size, and budget constraints.",
+        "action": "ENTER_STORE [nike]"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a specific query for Nike sneakers in size 10 within my $120 budget.",
+        "action": "SEARCH [Nike sneakers size 10 under $120]"
+      },
+      {
+        "step": 3,
+        "thought": "I see three products, all within budget and size 10 available. However, delivery times are 3-4 days, which exceeds my max delivery of 2 days. Let me evaluate the best rated one (Air Zoom Pegasus 41) to see if there are any delivery options I might be missing.",
+        "action": "EVALUATE [0]"
+      },
+      {
+        "step": 4,
+        "thought": "The Air Zoom Pegasus 41 misses on delivery (4 days > 2 days max). Let me check the other products - they show 3 days delivery which also exceeds my 2-day max. Let me evaluate product 1 to confirm, and see if there's any way to get faster delivery.",
+        "action": "EVALUATE [1]"
+      },
+      {
+        "step": 5,
+        "thought": "Both products evaluated miss on delivery. All three products have delivery times of 3-4 days, exceeding my 2-day maximum. This is a dead end on Nike's site. I've hit 2 failures (both evaluations failed on delivery), so I should abandon and try another site.",
+        "action": "ABANDON"
+      },
+      {
+        "step": 6,
+        "thought": "Nike site had delivery issues. Let me try Zappos, which often has faster shipping options.",
+        "action": "ENTER_STORE [zappos]"
+      },
+      {
+        "step": 7,
+        "thought": "I'll search for Nike or Adidas sneakers in size 10 within my $120 budget on Zappos.",
+        "action": "SEARCH [Nike Adidas sneakers size 10 under $120]"
+      },
+      {
+        "step": 8,
+        "thought": "Great results on Zappos! I can see products with 2-day delivery. The best options are:",
+        "action": "EVALUATE [2]"
+      },
+      {
+        "step": 9,
+        "thought": "The Adidas Ultraboost Light is a perfect match - brand (Adidas \u2713), price ($118 < $120 \u2713), size 10 \u2713, and 2-day delivery \u2713. I'll purchase it now.",
+        "action": "PURCHASE [2]"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.255,
+        "nike": 0.49,
+        "amazon": 0.255
+      },
+      "query_style": {
+        "broad": 0.255,
+        "moderate": 0.255,
+        "specific": 0.49
+      },
+      "filter_strategy": {
+        "price_first": 0.203,
+        "brand_first": 0.39,
+        "rating_first": 0.203,
+        "size_first": 0.203
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.255,
+        "after_2_fails": 0.49,
+        "after_3_fails": 0.255
+      }
+    },
+    "lesson": "Filter by brand first on brand sites for fast, accurate, budget-friendly results."
+  },
+  {
+    "run": 2,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "moderate",
+      "filter_strategy": "size_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Air Zoom Pegasus 41",
+      "brand": "Nike",
+      "price": 114,
+      "rating": 4.4,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 1,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 114,
+      "product": "Nike Air Zoom Pegasus 41",
+      "reason": "Purchase $114 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Amazon, then search with a moderate query (brand + size) for Nike or Adidas sneakers.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a moderate query - brand + size to find Nike or Adidas sneakers in size 10.",
+        "action": "SEARCH Nike Adidas sneakers size 10"
+      },
+      {
+        "step": 3,
+        "thought": "Let me evaluate the options. I need to stay within $120 budget. Products within budget: Nike Air Zoom Pegasus 41 ($114), Nike Revolution 7 ($69), Adidas Runfalcon 5 ($59), Nike Winflo 11 ($95). The Adidas Ultraboost Light ($125) and Adidas Supernova Rise ($132) exceed budget. The Nike Air Zoom Pegasus 41 at $114 has the highest rating (4.4) among budget-friendly options and 1-day delivery. I'll evaluate it first.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand (Nike), price ($114 under $120 budget), size 10, and delivery (1 day under 2-day max). This is the best option with highest rating among budget options. I'll purchase it.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.208,
+        "nike": 0.399,
+        "amazon": 0.393
+      },
+      "query_style": {
+        "broad": 0.208,
+        "moderate": 0.393,
+        "specific": 0.399
+      },
+      "filter_strategy": {
+        "price_first": 0.172,
+        "brand_first": 0.33,
+        "rating_first": 0.172,
+        "size_first": 0.326
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.393,
+        "after_2_fails": 0.399,
+        "after_3_fails": 0.208
+      }
+    },
+    "lesson": "Prioritize size filtering first; it efficiently leads to full matches and fast purchases."
+  },
+  {
+    "run": 3,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "moderate",
+      "filter_strategy": "price_first",
+      "abandon_threshold": "after_2_fails"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Air Zoom Pegasus 41",
+      "brand": "Nike",
+      "price": 114,
+      "rating": 4.4,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 1,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 114,
+      "product": "Nike Air Zoom Pegasus 41",
+      "reason": "Purchase $114 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Amazon, then search with a moderate query (brand + size) and filter by price first.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a moderate query including brand and size to find relevant sneakers.",
+        "action": "SEARCH Nike Adidas sneakers size 10"
+      },
+      {
+        "step": 3,
+        "thought": "Filtering by price first, I need items within budget ($120 max). Products [0] Nike Air Zoom Pegasus 41 at $114, [2] Nike Revolution 7 at $69, [3] Adidas Runfalcon 5 at $59, and [4] Nike Winflo 11 at $95 are within budget. Products [1] at $125 and [5] at $132 exceed budget. The best value within budget considering rating and price is the Nike Air Zoom Pegasus 41 at $114 with a 4.4 rating and 1-day delivery. I'll evaluate it first.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand (Nike), price ($114 under $120 budget), size 10, and delivery (1 day under 2-day max). I should purchase this immediately.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.175,
+        "nike": 0.336,
+        "amazon": 0.488
+      },
+      "query_style": {
+        "broad": 0.175,
+        "moderate": 0.488,
+        "specific": 0.336
+      },
+      "filter_strategy": {
+        "price_first": 0.282,
+        "brand_first": 0.286,
+        "rating_first": 0.149,
+        "size_first": 0.282
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.332,
+        "after_2_fails": 0.493,
+        "after_3_fails": 0.175
+      }
+    },
+    "lesson": "Price-first filtering on Amazon yields fast, budget-friendly purchases with full query matches."
+  },
+  {
+    "run": 4,
+    "strategy": {
+      "site": "nike",
+      "query_style": "specific",
+      "filter_strategy": "price_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": 51,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "captcha_blocked": -10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -14
+    },
+    "steps": 7,
+    "outcome": "purchased",
+    "product": {
+      "name": "Adidas Ultraboost Light",
+      "brand": "Adidas",
+      "price": 118,
+      "rating": 4.7,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 2,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 118,
+      "product": "Adidas Ultraboost Light",
+      "reason": "Purchase $118 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering the Nike store, then search with a specific query including brand, size, and budget constraints.",
+        "action": "ENTER_STORE [nike]"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a specific query that includes brand, size, and budget information as per the strategy.",
+        "action": "SEARCH [Nike sneakers size 10 under $120]"
+      },
+      {
+        "step": 3,
+        "thought": "I need to filter by delivery (max 2 days) and budget ($120). Looking at the results:",
+        "action": "ABANDON"
+      },
+      {
+        "step": 4,
+        "thought": "Nike failed due to delivery constraints. I'll try Amazon next, where price-first filtering has worked well in previous runs (runs 2 and 3 both succeeded with reward 67). I'll search for Nike or Adidas sneakers within budget.",
+        "action": "ENTER_STORE [amazon]"
+      },
+      {
+        "step": 5,
+        "thought": "Amazon has a CAPTCHA, so I need to abandon and try Zappos instead.",
+        "action": "ENTER_STORE [zappos]"
+      },
+      {
+        "step": 6,
+        "thought": "I'll search on Zappos with a specific query for Nike/Adidas sneakers in size 10 under $120.",
+        "action": "SEARCH [Nike Adidas sneakers size 10 under $120]"
+      },
+      {
+        "step": 7,
+        "thought": "Let me filter by the constraints: budget \u2264 $120, size 10 available, delivery \u2264 2 days:",
+        "action": "EVALUATE [2]"
+      },
+      {
+        "step": 8,
+        "thought": "The Adidas Ultraboost Light is a perfect match - brand (Adidas), price ($118 under $120), size 10 available, and delivery within 2 days. I'll purchase it immediately.",
+        "action": "PURCHASE [2]"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.157,
+        "nike": 0.407,
+        "amazon": 0.436
+      },
+      "query_style": {
+        "broad": 0.157,
+        "moderate": 0.436,
+        "specific": 0.407
+      },
+      "filter_strategy": {
+        "price_first": 0.348,
+        "brand_first": 0.26,
+        "rating_first": 0.135,
+        "size_first": 0.256
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.403,
+        "after_2_fails": 0.441,
+        "after_3_fails": 0.157
+      }
+    },
+    "lesson": "Filter by price first on Nike to find budget-friendly matches quickly despite captchas."
+  },
+  {
+    "run": 5,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "broad",
+      "filter_strategy": "price_first",
+      "abandon_threshold": "after_2_fails"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Air Zoom Pegasus 41",
+      "brand": "Nike",
+      "price": 114,
+      "rating": 4.4,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 1,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 114,
+      "product": "Nike Air Zoom Pegasus 41",
+      "reason": "Purchase $114 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "Following the strategy, I'll start on Amazon with a broad query and price-first filtering approach.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "I'll search with a broad query for sneakers, then filter by price to find budget-friendly options.",
+        "action": "SEARCH sneakers size 10"
+      },
+      {
+        "step": 3,
+        "thought": "Applying price-first filter within budget ($120 max). Options from approved brands (Nike/Adidas) within budget: Nike Air Zoom Pegasus 41 ($114, rating 4.4), Nike Revolution 7 ($69, rating 4.0), Adidas Runfalcon 5 ($59, rating 3.9), Nike Winflo 11 ($95, rating 4.2). The Nike Air Zoom Pegasus 41 has the highest rating at 4.4 and is within budget at $114, with 1-day delivery. I'll evaluate that first.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand (Nike), price ($114 within $120 budget), size 10, and delivery (1 day within 2-day max). I should purchase this immediately.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.137,
+        "nike": 0.357,
+        "amazon": 0.505
+      },
+      "query_style": {
+        "broad": 0.26,
+        "moderate": 0.383,
+        "specific": 0.357
+      },
+      "filter_strategy": {
+        "price_first": 0.419,
+        "brand_first": 0.232,
+        "rating_first": 0.121,
+        "size_first": 0.229
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.353,
+        "after_2_fails": 0.509,
+        "after_3_fails": 0.137
+      }
+    },
+    "lesson": "Price-first filtering on Amazon yields fast, budget-friendly purchases with broad queries."
+  },
+  {
+    "run": 6,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "specific",
+      "filter_strategy": "size_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Air Zoom Pegasus 41",
+      "brand": "Nike",
+      "price": 114,
+      "rating": 4.4,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 1,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 114,
+      "product": "Nike Air Zoom Pegasus 41",
+      "reason": "Purchase $114 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Amazon, then search with a specific query (brand+size+budget) for Nike or Adidas sneakers in size 10 under $120. This run uses size_first filtering, so I'll look for size 10 options first.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a specific query including brand, size, and budget to find the best sneaker.",
+        "action": "SEARCH Nike Adidas sneakers size 10 under $120"
+      },
+      {
+        "step": 3,
+        "thought": "The Nike Air Zoom Pegasus 41 at $114 has the highest rating (4.4), is within budget ($120), available in size 10, and delivers in 1 day. I'll evaluate it first to confirm it's a good purchase.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand, price, size, and delivery all match. I'll purchase this product immediately.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.122,
+        "nike": 0.318,
+        "amazon": 0.56
+      },
+      "query_style": {
+        "broad": 0.232,
+        "moderate": 0.341,
+        "specific": 0.427
+      },
+      "filter_strategy": {
+        "price_first": 0.378,
+        "brand_first": 0.209,
+        "rating_first": 0.109,
+        "size_first": 0.304
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.424,
+        "after_2_fails": 0.454,
+        "after_3_fails": 0.122
+      }
+    },
+    "lesson": "Size-first filtering on Amazon leads to fast, successful purchases within budget."
+  },
+  {
+    "run": 7,
+    "strategy": {
+      "site": "zappos",
+      "query_style": "moderate",
+      "filter_strategy": "price_first",
+      "abandon_threshold": "after_2_fails"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Adidas Ultraboost Light",
+      "brand": "Adidas",
+      "price": 118,
+      "rating": 4.7,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 2,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 118,
+      "product": "Adidas Ultraboost Light",
+      "reason": "Purchase $118 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Zappos and searching with a moderate query (brand + size) for Nike or Adidas sneakers.",
+        "action": "ENTER_STORE [zappos]"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a moderate query combining brand and size to find relevant sneakers.",
+        "action": "SEARCH [Nike Adidas sneakers size 10]"
+      },
+      {
+        "step": 3,
+        "thought": "Filtering by price first - I need items within $120 budget and 2-day delivery. The candidates are:",
+        "action": "EVALUATE [2]"
+      },
+      {
+        "step": 4,
+        "thought": "The Adidas Ultraboost Light is a perfect match - correct brand, within $120 budget, size 10 available, and 2-day delivery. I'll purchase it now.",
+        "action": "PURCHASE [2]"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.209,
+        "nike": 0.287,
+        "amazon": 0.504
+      },
+      "query_style": {
+        "broad": 0.209,
+        "moderate": 0.406,
+        "specific": 0.385
+      },
+      "filter_strategy": {
+        "price_first": 0.433,
+        "brand_first": 0.191,
+        "rating_first": 0.099,
+        "size_first": 0.277
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.382,
+        "after_2_fails": 0.507,
+        "after_3_fails": 0.11
+      }
+    },
+    "lesson": "Price-first filtering on Zappos efficiently finds full matches within budget with fast delivery."
+  },
+  {
+    "run": 8,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "broad",
+      "filter_strategy": "size_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Air Zoom Pegasus 41",
+      "brand": "Nike",
+      "price": 114,
+      "rating": 4.4,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 1,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 114,
+      "product": "Nike Air Zoom Pegasus 41",
+      "reason": "Purchase $114 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Amazon and searching with a broad query, then filter by size first.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a broad query for sneakers.",
+        "action": "SEARCH sneakers"
+      },
+      {
+        "step": 3,
+        "thought": "I'll filter by size first (all show size 10 available), then check budget. Products within budget ($120): Nike Air Zoom Pegasus 41 at $114, Nike Revolution 7 at $69, Adidas Runfalcon 5 at $59, Nike Winflo 11 at $95. The Adidas Ultraboost Light at $125 exceeds budget. The best rated within budget is Nike Air Zoom Pegasus 41 at $114 with a 4.4 rating. I'll evaluate that one.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand (Nike), price ($114 under $120 budget), size 10 available, and 1-day delivery. I'll purchase it.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.19,
+        "nike": 0.261,
+        "amazon": 0.549
+      },
+      "query_style": {
+        "broad": 0.28,
+        "moderate": 0.369,
+        "specific": 0.351
+      },
+      "filter_strategy": {
+        "price_first": 0.398,
+        "brand_first": 0.175,
+        "rating_first": 0.091,
+        "size_first": 0.336
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.438,
+        "after_2_fails": 0.462,
+        "after_3_fails": 0.1
+      }
+    },
+    "lesson": "Broad queries with size-first filtering efficiently finds full matches while staying under budget."
+  },
+  {
+    "run": 9,
+    "strategy": {
+      "site": "amazon",
+      "query_style": "broad",
+      "filter_strategy": "size_first",
+      "abandon_threshold": "after_1_fail"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Nike Air Zoom Pegasus 41",
+      "brand": "Nike",
+      "price": 114,
+      "rating": 4.4,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 1,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 114,
+      "product": "Nike Air Zoom Pegasus 41",
+      "reason": "Purchase $114 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Amazon, then search with a broad query and filter by size first, following the successful strategy from Run 8.",
+        "action": "ENTER_STORE amazon"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a broad query for sneakers, consistent with the \"broad\" query style strategy.",
+        "action": "SEARCH sneakers size 10"
+      },
+      {
+        "step": 3,
+        "thought": "Nike Air Zoom Pegasus 41 at $114 looks like the best option - it's a Nike (approved brand), size 10 available, within budget ($114 < $120), 1-day delivery, and has a solid 4.4 rating. Let me evaluate it.",
+        "action": "EVALUATE 0"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand, price, size, and delivery. I'll purchase it immediately.",
+        "action": "PURCHASE 0"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.174,
+        "nike": 0.24,
+        "amazon": 0.586
+      },
+      "query_style": {
+        "broad": 0.339,
+        "moderate": 0.339,
+        "specific": 0.322
+      },
+      "filter_strategy": {
+        "price_first": 0.368,
+        "brand_first": 0.162,
+        "rating_first": 0.084,
+        "size_first": 0.386
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.484,
+        "after_2_fails": 0.424,
+        "after_3_fails": 0.092
+      }
+    },
+    "lesson": "Size filtering first ensures full matches and efficient checkouts within budget."
+  },
+  {
+    "run": 10,
+    "strategy": {
+      "site": "zappos",
+      "query_style": "moderate",
+      "filter_strategy": "size_first",
+      "abandon_threshold": "after_3_fails"
+    },
+    "reward": 67,
+    "reward_breakdown": {
+      "item_found_full_match": 20,
+      "purchase_completed": 25,
+      "under_budget": 10,
+      "fast_delivery": 5,
+      "checkout_reached": 15,
+      "step_penalty": -8
+    },
+    "steps": 4,
+    "outcome": "purchased",
+    "product": {
+      "name": "Adidas Ultraboost Light",
+      "brand": "Adidas",
+      "price": 118,
+      "rating": 4.7,
+      "sizes": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "delivery_days": 2,
+      "in_stock": true
+    },
+    "payment": {
+      "success": false,
+      "requires_human_approval": true,
+      "amount": 118,
+      "product": "Adidas Ultraboost Light",
+      "reason": "Purchase $118 requires human approval (threshold: $80)"
+    },
+    "reasoning_trace": [
+      {
+        "step": 1,
+        "thought": "I'll start by entering Zappos and searching with a moderate query style (brand + size) using size-first filtering strategy.",
+        "action": "ENTER_STORE zappos"
+      },
+      {
+        "step": 2,
+        "thought": "Now I'll search with a moderate query including brand and size information.",
+        "action": "SEARCH Nike Adidas sneakers size 10"
+      },
+      {
+        "step": 3,
+        "thought": "Let me filter by my constraints: budget $120, max delivery 2 days, size 10 available, brands Nike or Adidas.",
+        "action": "EVALUATE 1"
+      },
+      {
+        "step": 4,
+        "thought": "Perfect match on all criteria - brand (Adidas), price ($118 under $120 budget), size 10, and delivery (2 days). I'll purchase it now.",
+        "action": "PURCHASE 1"
+      }
+    ],
+    "bandit_weights": {
+      "site": {
+        "zappos": 0.237,
+        "nike": 0.221,
+        "amazon": 0.541
+      },
+      "query_style": {
+        "broad": 0.313,
+        "moderate": 0.389,
+        "specific": 0.297
+      },
+      "filter_strategy": {
+        "price_first": 0.342,
+        "brand_first": 0.151,
+        "rating_first": 0.078,
+        "size_first": 0.429
+      },
+      "abandon_threshold": {
+        "after_1_fail": 0.447,
+        "after_2_fails": 0.392,
+        "after_3_fails": 0.161
+      }
+    },
+    "lesson": "Filtering by size first on Zappos efficiently finds full matches and enables fast, under-budget purchases."
+  }
+]
