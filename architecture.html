@@ -358,7 +358,7 @@
 
     <div class="callout">
         <div class="callout-title">One sentence:</div>
-        <p>We run <strong>10 episodes</strong>: the first 9 are <strong>simulated exploration</strong> (search, find, evaluate &mdash; no purchase). The agent learns which strategy works best. On episode 10, it uses its best learned strategy to make the <strong>one real purchase</strong>.</p>
+        <p>We run <strong>3&ndash;10 episodes</strong> (user picks via slider): <strong>ALL are exploration</strong> (search, find, evaluate &mdash; no purchase). The agent learns which strategy works best. After the loop, it presents the <strong>best candidate to the human for approval</strong> before any purchase happens.</p>
     </div>
 
     <div class="callout" style="border-left-color: #10b981;">
@@ -369,7 +369,7 @@
 
     <!-- The outer loop diagram -->
     <div class="diagram-container">
-        <div class="diagram-title">THE LEARNING LOOP (10 episodes)</div>
+        <div class="diagram-title">THE LEARNING LOOP (3&ndash;10 episodes, configurable)</div>
         <svg viewBox="0 0 800 200" class="svg-diagram" style="max-width:800px; margin:0 auto; display:block;">
             <!-- Circular arrow -->
             <path d="M 400 180 A 160 80 0 1 1 400 20" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3" stroke-dasharray="8,4"/>
@@ -511,7 +511,7 @@
             <!-- Level 0: Full Run -->
             <rect x="50" y="10" width="800" height="50" rx="12" fill="rgba(108,60,225,0.2)" stroke="#a78bfa" stroke-width="2"/>
             <text x="450" y="32" text-anchor="middle" fill="#a78bfa" font-size="14" font-weight="800">FULL RUN (python run_loop.py)</text>
-            <text x="450" y="48" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= 9 exploration episodes + 1 purchase. Beta distributions persist across sessions.</text>
+            <text x="450" y="48" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10">= 3&ndash;10 exploration episodes (all simulated). Human approves purchase after. Betas persist.</text>
 
             <!-- Connector -->
             <path d="M 450 60 L 450 80" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
@@ -640,9 +640,9 @@
     <div class="callout orange">
         <div class="callout-title">How these relate (read this carefully)</div>
         <p>
-            <strong>1 Full Run</strong> = 9 exploration episodes + 1 purchase episode<br>
-            <strong>1 Episode (1-9)</strong> = explore: search + find + evaluate + score &mdash; <em>no real payment</em><br>
-            <strong>Episode 10</strong> = uses best learned strategy &rarr; finds product &rarr; <strong>one real purchase</strong><br>
+            <strong>1 Full Run</strong> = 3&ndash;10 exploration episodes (user chooses via slider). ALL are simulated.<br>
+            <strong>Each Episode</strong> = explore: search + find + evaluate + score &mdash; <em>no real payment</em><br>
+            <strong>After loop</strong> = best candidate presented to human &rarr; <strong>approve or reject</strong><br>
             <strong>1 Strategy</strong> = 4 choices (one from each bandit): site + query + filter + abandon<br>
             <strong>1 Bandit</strong> = multiple arms. Thompson Sampling picks one arm per episode.<br>
             <strong>1 Arm</strong> = one option (e.g., "stockx"). Has a Beta(alpha, beta) that gets smarter after each use.<br>
@@ -1060,7 +1060,7 @@
                 <li><strong>Early episodes:</strong> All arms have wide distributions (Beta(1,1) is uniform). Random samples are all over the place &rarr; agent <em>explores</em> different sites.</li>
                 <li><strong>Later episodes:</strong> Winning arms have peaked distributions (Beta(5,2) peaks around 0.7). They consistently sample high &rarr; agent <em>exploits</em> what works.</li>
                 <li><strong>No tuning:</strong> Unlike epsilon-greedy (need to set epsilon), Thompson Sampling figures out explore/exploit automatically.</li>
-                <li><strong>Works with 10 samples:</strong> Deep RL (PPO, DQN) needs thousands of episodes. Thompson Sampling converges in 3-5.</li>
+                <li><strong>Works with few samples:</strong> Deep RL (PPO, DQN) needs thousands of episodes. Thompson Sampling converges in 3-5.</li>
             </ul>
         </div>
 
@@ -1085,7 +1085,7 @@
                     <div class="bandit-bar-row"><span class="bandit-label">Moderate</span><div class="bandit-bar-bg"><div class="bandit-bar-fill mid" style="width:56%;">0.28</div></div></div>
                 </div>
             </div>
-            <p style="font-size:0.8rem; color:var(--muted); margin-top:12px;">Each bandit independently learns its best arm. Total arms = 6+3+4+3 = 16. Each arm gets ~2-3 updates in 10 episodes &mdash; enough to converge.</p>
+            <p style="font-size:0.8rem; color:var(--muted); margin-top:12px;">Each bandit independently learns its best arm. Total arms = 6+3+4+3 = 16. Each arm gets ~1-3 updates per session &mdash; enough to converge with Thompson Sampling.</p>
         </div>
     </div>
 </section>
@@ -1297,7 +1297,7 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <section>
     <h2>5. Reward Function (How Runs Are Scored)</h2>
-    <p class="section-subtitle">This is the signal the RL bandit learns from. Designed to make the learning visible in 10 episodes.</p>
+    <p class="section-subtitle">This is the signal the RL bandit learns from. Designed to make learning visible in just a few episodes.</p>
 
     <div class="grid-2">
         <div>
@@ -1465,7 +1465,7 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <section>
     <h2>7. The Hallucination Fix (Critical Bug We Solved)</h2>
-    <p class="section-subtitle">Without this fix, 6/10 episodes produced 0 reward because Claude "shopped" in its imagination.</p>
+    <p class="section-subtitle">Without this fix, most episodes produced 0 reward because Claude "shopped" in its imagination.</p>
 
     <div class="compare-grid">
         <div class="compare-col bad">
@@ -1615,7 +1615,7 @@ response = client.messages.create(
 
     <div class="callout green">
         <div class="callout-title">The safety invariant</div>
-        <p>Payment only fires on the <strong>final episode</strong> (episode 10). Episodes 1&ndash;9 explore without spending. Even on the final episode, the credential is checked: site must be authorized, amount must be under the cap, and early runs require human approval. <strong>No agent can escalate its own permissions.</strong></p>
+        <p>Payment <strong>never fires automatically</strong>. All episodes are exploration. After the loop, the best product is presented to the human in the UI. They approve or reject. Even on approval, the credential is checked: site must be authorized, amount must be under the cap. <strong>No agent can purchase without explicit human consent.</strong></p>
     </div>
 </section>
 
@@ -1646,7 +1646,7 @@ response = client.messages.create(
             <tr>
                 <td><strong>Jina.ai reader</strong></td>
                 <td>Playwright, Selenium</td>
-                <td>Free, no browser needed. 10 episodes in 2 min vs 20+ with real browsers.</td>
+                <td>Free, no browser needed. Episodes run in ~20s each vs minutes with real browsers.</td>
             </tr>
             <tr>
                 <td><strong>ReAct loop</strong></td>
@@ -1664,14 +1664,14 @@ response = client.messages.create(
                 <td>Defense in depth. Credential is immutable &mdash; can't be jailbroken mid-run.</td>
             </tr>
             <tr>
-                <td><strong>Explore 9, buy once</strong></td>
-                <td>Buy every episode</td>
-                <td>Real products cost real money. 9 simulated runs learn the best strategy, then 1 real purchase uses it.</td>
+                <td><strong>All explore, human approves</strong></td>
+                <td>Buy every episode / auto-buy last</td>
+                <td>All episodes are exploration. Human sees the best candidate and approves or rejects. No autonomous spending.</td>
             </tr>
             <tr>
                 <td><strong>Persistent Beta state</strong></td>
                 <td>Reset every session</td>
-                <td>Learning compounds. User shops 3x &rarr; agent has 30 episodes of experience. Saved to bandit_state.json.</td>
+                <td>Learning compounds. User shops multiple times &rarr; experience accumulates. Saved to bandit_state.json.</td>
             </tr>
             <tr>
                 <td><strong>Clean user context per query</strong></td>
@@ -1745,7 +1745,7 @@ response = client.messages.create(
             <table class="nice-table">
                 <thead><tr><th>File</th><th>Role</th></tr></thead>
                 <tbody>
-                    <tr><td><code>run_loop.py</code></td><td>Orchestrator. 9 explore + 1 purchase, persists bandit.</td></tr>
+                    <tr><td><code>run_loop.py</code></td><td>Orchestrator. All episodes explore, human approves after. Persists bandit.</td></tr>
                     <tr><td><code>shopping_agent.py</code></td><td>Claude ReAct loop + action dispatcher.</td></tr>
                     <tr><td><code>memory_agent.py</code></td><td>Context persistence, history summaries.</td></tr>
                     <tr><td><code>rl_bandit.py</code></td><td>Thompson Sampling, 4 bandits.</td></tr>
