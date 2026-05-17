@@ -204,6 +204,10 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
     purchased_runs = [r for r in all_results if r["outcome"] == "purchased" and r.get("product")]
     best_candidate = max(purchased_runs, key=lambda r: r["reward"]) if purchased_runs else None
 
+    # Tag the best candidate's product with the site so payment can verify
+    if best_candidate and best_candidate.get("product"):
+        best_candidate["product"]["site"] = best_candidate["strategy"]["site"]
+
     # ── Final summary ───────────────────────────────────────────────
     rewards = [r["reward"] for r in all_results]
     best_idx = rewards.index(max(rewards))
@@ -240,7 +244,7 @@ def execute_approved_purchase(product: dict, context_graph: dict) -> dict:
     session_id = "approved-" + uuid.uuid4().hex[:8]
     auth_result = issue_credential(context_graph, session_id, run_number=99)
     credential = auth_result["credential"]
-    site_key = product.get("site", "unknown") + ".com"
+    site_key = product.get("site", product.get("_strategy_site", "zappos")) + ".com"
     auth_check = verify_credential(credential, site_key, product["price"])
 
     if auth_check["cleared"]:
