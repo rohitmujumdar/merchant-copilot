@@ -245,13 +245,22 @@ with st.sidebar:
 
             brands_html = " ".join(f'<span class="tag">{b}</span>' for b in prefs.get("brands", []))
             st.markdown(f'{brands_html}', unsafe_allow_html=True)
-            st.markdown(f"""
+
+            tags_html = f"""
             <div style="margin-top: 12px; line-height: 1.8;">
                 <span class="tag-green tag">Size {prefs.get('size', '?')}</span>
                 <span class="tag-purple tag">${prefs.get('budget', '?')} budget</span>
                 <span class="tag-amber tag">{prefs.get('style', '?')}</span>
-            </div>
-            """, unsafe_allow_html=True)
+            """
+            if prefs.get("color"):
+                tags_html += f'<span class="tag" style="background:#1e1a3a; color:#818cf8;">{prefs["color"]}</span>'
+            tags_html += "</div>"
+            st.markdown(tags_html, unsafe_allow_html=True)
+
+            if prefs.get("specific_product"):
+                st.caption(f"Looking for: {prefs['specific_product']}")
+            if prefs.get("custom_instructions"):
+                st.caption(f"Rules: {prefs['custom_instructions']}")
 
             trust = cg.get("user", {}).get("trust_rules", {})
             st.caption(f"Spend cap: ${trust.get('max_autonomous_spend', '?')}")
@@ -283,21 +292,30 @@ if st.session_state.screen == "onboarding":
     SYSTEM_PROMPT = """You are the onboarding assistant for STRIDE, a personal shopping agent.
 Your job: have a friendly conversation to learn the user's shopping preferences.
 
-You need to extract:
-- brands (list of preferred brands, e.g. Nike, Adidas, New Balance)
+You need to extract these REQUIRED fields:
+- brands (list of preferred brands, e.g. Nike, Adidas, Jordan)
 - size (shoe size, numeric)
 - budget (max they want to spend, in dollars)
 - max_delivery_days (how fast they need it)
 - style (running, casual, basketball, etc.)
 - max_autonomous_spend (max the agent can spend without asking — usually same or slightly above budget)
 
-Be conversational and friendly. Ask follow-up questions if needed. Once you have ALL the info,
+Also listen for these OPTIONAL fields (include them if the user mentions them):
+- color (preferred color, e.g. "blue", "black/red")
+- specific_product (exact product they want, e.g. "Jordan 4 Retro", "Yeezy Boost 350")
+- custom_instructions (any special rules, e.g. "ask me before buying anything that isn't Jordan", "only buy on sale")
+- excluded_brands (brands they do NOT want, e.g. "no Reebok")
+
+Pay close attention to instructions like "ask me before...", "don't buy...", "only buy...". These go in custom_instructions.
+
+Be conversational and friendly. Ask follow-up questions if needed. Once you have ALL required info,
 respond with EXACTLY this format at the end of your message (the system will parse it):
 
 PREFERENCES_JSON:
-{"brands": ["Nike", "Adidas"], "size": 10, "budget": 120, "max_delivery_days": 2, "style": "running", "max_autonomous_spend": 150}
+{"brands": ["Jordan"], "size": 10, "budget": 300, "max_delivery_days": 3, "style": "casual", "max_autonomous_spend": 350, "color": "blue", "specific_product": "Jordan 4 Retro", "custom_instructions": "ask me before buying anything that is not Jordan", "excluded_brands": []}
 
-Only output the JSON block when you have ALL fields. Until then, keep chatting."""
+Only output the JSON block when you have ALL required fields. Until then, keep chatting.
+Include optional fields only if the user mentioned them. Omit them if not mentioned."""
 
     # Chat history
     for msg in st.session_state.chat_history:
@@ -341,13 +359,24 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
                     prefs = json.loads(json_str)
 
                     cg = json.loads(CONTEXT_GRAPH_PATH.read_text()) if CONTEXT_GRAPH_PATH.exists() else {"user": {}, "history": [], "learned_insights": []}
-                    cg["user"]["preferences"] = {
+                    user_prefs = {
                         "brands": prefs["brands"],
                         "size": prefs["size"],
                         "budget": prefs["budget"],
                         "max_delivery_days": prefs["max_delivery_days"],
                         "style": prefs["style"],
                     }
+                    # Optional guardrail fields
+                    if prefs.get("color"):
+                        user_prefs["color"] = prefs["color"]
+                    if prefs.get("specific_product"):
+                        user_prefs["specific_product"] = prefs["specific_product"]
+                    if prefs.get("custom_instructions"):
+                        user_prefs["custom_instructions"] = prefs["custom_instructions"]
+                    if prefs.get("excluded_brands"):
+                        user_prefs["excluded_brands"] = prefs["excluded_brands"]
+
+                    cg["user"]["preferences"] = user_prefs
                     cg["user"]["trust_rules"] = {
                         "max_autonomous_spend": prefs.get("max_autonomous_spend", prefs["budget"] + 30),
                         "approved_categories": ["footwear"],
@@ -365,17 +394,27 @@ Only output the JSON block when you have ALL fields. Until then, keep chatting."
         with st.form("quick_setup"):
             col1, col2 = st.columns(2)
             with col1:
-                brands = st.multiselect("Brands", ["Nike", "Adidas", "New Balance", "HOKA", "Brooks", "Asics", "Reebok"], default=["Nike", "Adidas"])
+                brands = st.multiselect("Brands", ["Nike", "Adidas", "Jordan", "New Balance", "HOKA", "Brooks", "Asics", "Reebok", "Yeezy"], default=["Nike", "Adidas"])
                 size = st.number_input("Shoe size", min_value=5, max_value=16, value=10)
                 style = st.selectbox("Style", ["running", "casual", "basketball", "trail", "walking"])
+                color = st.text_input("Preferred color (optional)", placeholder="e.g. blue, black/red")
             with col2:
                 budget = st.number_input("Budget ($)", min_value=30, max_value=500, value=120)
                 max_days = st.number_input("Max delivery days", min_value=1, max_value=7, value=2)
                 spend_cap = st.number_input("Agent spend cap ($)", min_value=30, max_value=500, value=150)
+                specific_product = st.text_input("Specific product (optional)", placeholder="e.g. Jordan 4 Retro")
+            custom_instructions = st.text_area("Custom instructions (optional)", placeholder="e.g. Ask me before buying anything that isn't Jordan")
 
             if st.form_submit_button("Save Profile", type="primary"):
                 cg = json.loads(CONTEXT_GRAPH_PATH.read_text()) if CONTEXT_GRAPH_PATH.exists() else {"user": {}, "history": [], "learned_insights": []}
-                cg["user"]["preferences"] = {"brands": brands, "size": size, "budget": budget, "max_delivery_days": max_days, "style": style}
+                user_prefs = {"brands": brands, "size": size, "budget": budget, "max_delivery_days": max_days, "style": style}
+                if color:
+                    user_prefs["color"] = color
+                if specific_product:
+                    user_prefs["specific_product"] = specific_product
+                if custom_instructions:
+                    user_prefs["custom_instructions"] = custom_instructions
+                cg["user"]["preferences"] = user_prefs
                 cg["user"]["trust_rules"] = {"max_autonomous_spend": spend_cap, "approved_categories": ["footwear"], "require_approval_first_n_runs": 3}
                 CONTEXT_GRAPH_PATH.write_text(json.dumps(cg, indent=2))
                 st.success("Profile saved! Head to **Run Agent** to start shopping.")

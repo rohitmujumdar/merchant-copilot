@@ -25,6 +25,22 @@ def build_system_prompt(context_graph: dict, history_summary: str) -> str:
     prefs = context_graph["user"]["preferences"]
     trust = context_graph["user"]["trust_rules"]
 
+    # Guardrails: user-specific instructions
+    color = prefs.get("color", "")
+    specific_product = prefs.get("specific_product", "")
+    custom_instructions = prefs.get("custom_instructions", "")
+    excluded_brands = prefs.get("excluded_brands", [])
+
+    guardrails = ""
+    if color:
+        guardrails += f"\n- REQUIRED COLOR: {color} — only buy this color. Skip products that don't match."
+    if specific_product:
+        guardrails += f"\n- SPECIFIC PRODUCT REQUESTED: {specific_product} — prioritize finding this exact product."
+    if custom_instructions:
+        guardrails += f"\n- USER INSTRUCTIONS: {custom_instructions} — you MUST follow these."
+    if excluded_brands:
+        guardrails += f"\n- EXCLUDED BRANDS: {excluded_brands} — never buy from these brands."
+
     return f"""You are a personal shopping agent. Your job is to find and buy the best sneaker for the user.
 
 USER PREFERENCES (never violate these):
@@ -33,14 +49,20 @@ USER PREFERENCES (never violate these):
 - Budget: ${prefs.get("budget")}
 - Max delivery: {prefs.get("max_delivery_days")} days
 - Max autonomous spend: ${trust.get("max_autonomous_spend")}
+{guardrails}
 
 {history_summary}
+
+GUARDRAILS — HARD RULES (violating these = failed run):
+- Only buy products that match the user's preferred brands
+- If a specific product or color is requested, ONLY buy that. Do not substitute.
+- If user said "ask before buying X", you must output: NEED_APPROVAL [product name, price, reason] instead of PURCHASE
+- Never buy the wrong size
+- Never exceed budget
 
 RULES:
 - Only shop on approved sites: Zappos, 6pm, StockX, GOAT, Nike, Amazon
 - 6pm is a discount shoe site, StockX and GOAT are sneaker resale marketplaces
-- Never buy the wrong size
-- Never exceed budget
 - Abandon a site if you hit a CAPTCHA or dead end
 - Be efficient — fewer steps = better reward
 
@@ -106,6 +128,7 @@ Available actions:
 - EVALUATE [product_index]: Evaluate a specific product from search results
 - PURCHASE [product_index]: Attempt to purchase the product
 - ASK_MEMORY [question]: Ask the Memory Agent about past runs (prices, best sites, lessons)
+- NEED_APPROVAL [product_index, reason]: Flag a product that doesn't match user's exact request — pauses for human review
 - ABANDON: Give up on current site, try another
 - DONE: End the run
 
@@ -360,6 +383,21 @@ def execute_action(action: str, env: ShoppingEnvironment, prefs: dict,
                 "message": f"Purchase confirmed! {product['name']} for ${product['price']}. Order placed."
             }
         return {"failed": True, "message": f"Purchase failed: {result.get('reason')}"}
+
+    # NEED_APPROVAL — agent flags a product that doesn't match exact request
+    elif action_upper.startswith("NEED_APPROVAL"):
+        parts = action.split()
+        idx = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+        if search_results and idx < len(search_results):
+            product = search_results[idx]
+            reason = " ".join(parts[2:]) if len(parts) > 2 else "Doesn't match exact request"
+            return {
+                "message": f"APPROVAL NEEDED: {product['name']} (${product['price']}) — {reason}. "
+                           f"In a production system, this would pause for human approval. "
+                           f"For demo: skipping this product. Find a better match or ABANDON.",
+                "needs_approval": True,
+            }
+        return {"message": "Invalid product index for approval request."}
 
     # ABANDON
     elif action_upper.startswith("ABANDON"):
