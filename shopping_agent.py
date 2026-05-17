@@ -31,7 +31,12 @@ def build_system_prompt(context_graph: dict, history_summary: str) -> str:
     custom_instructions = prefs.get("custom_instructions", "")
     excluded_brands = prefs.get("excluded_brands", [])
 
+    original_query = context_graph.get("user", {}).get("original_query", "")
+    feedback = context_graph.get("user", {}).get("feedback", "")
+
     guardrails = ""
+    if original_query:
+        guardrails += f"\n- ORIGINAL USER REQUEST: \"{original_query}\" — use these exact terms when searching."
     if color:
         guardrails += f"\n- REQUIRED COLOR: {color} — only buy this color. Skip products that don't match."
     if specific_product:
@@ -40,6 +45,8 @@ def build_system_prompt(context_graph: dict, history_summary: str) -> str:
         guardrails += f"\n- USER INSTRUCTIONS: {custom_instructions} — you MUST follow these."
     if excluded_brands:
         guardrails += f"\n- EXCLUDED BRANDS: {excluded_brands} — never buy from these brands."
+    if feedback:
+        guardrails += f"\n- USER REJECTED LAST RESULT: \"{feedback}\" — adjust your search to match this feedback."
 
     return f"""You are a personal shopping agent. Your job is to find and buy the best sneaker for the user.
 
@@ -116,11 +123,15 @@ def run_shopping_episode(context_graph: dict, strategy: dict,
     }
 
     # Build initial prompt for Claude
+    original_query = context_graph.get("user", {}).get("original_query", "")
+    query_line = f"\nUser is looking for: \"{original_query}\"\nUse these terms in your SEARCH queries.\n" if original_query else ""
+
     initial_message = f"""Run #{run_number}. Your strategy this run:
 - Site: {strategy["site"]} ({site_registry.get(strategy["site"], "")})
 - Query style: {strategy["query_style"]} (broad=generic, moderate=brand+size, specific=brand+size+budget)
 - Filter: {strategy["filter_strategy"]}
 - Abandon after: {max_fails} failure(s)
+{query_line}
 
 Available actions:
 - NAVIGATE [url]: Navigate to a shopping site (zappos, 6pm, stockx, goat, nike, amazon)

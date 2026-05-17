@@ -137,28 +137,11 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
             memory_agent=memory,  # Agent-to-Agent: Shopper can query Memory mid-run
         )
 
-        # ── 5. PAYMENT AGENT: Only fires on FINAL episode ───────────
-        # FIX #1: Episodes 1 to N-1 are exploration only. No real payment.
-        # Payment only happens on the last episode IF it found a product.
-        payment_result = {"success": False, "reason": "Exploration only — no payment"}
-        is_final_episode = (run_number == total_runs)
-
-        if is_final_episode and run_result["outcome"] == "purchased" and run_result["product"]:
-            product = run_result["product"]
-            site_key = strategy["site"] + ".com"
-            auth_check = verify_credential(credential, site_key, product["price"])
-
-            if auth_check["cleared"]:
-                payment_result = execute_payment(product, credential, auth_check)
-                if payment_result["success"]:
-                    print(f"[Payment] 🎉 FINAL PURCHASE via x402. ${product['price']} charged. "
-                          f"ID: {payment_result.get('confirmation_id')}")
-                else:
-                    print(f"[Payment] Failed: {payment_result.get('reason')}")
-            else:
-                print(f"[Auth] Payment blocked: {auth_check['reason']}")
-        elif not is_final_episode and run_result["outcome"] == "purchased":
-            print(f"[Explore] Found {run_result['product']['name']} @ ${run_result['product']['price']} — simulated (not buying yet)")
+        # ── 5. NO AUTO-PAYMENT — all episodes are exploration ─────────
+        # Payment requires explicit human approval via the Streamlit UI.
+        payment_result = {"success": False, "reason": "Awaiting human approval"}
+        if run_result["outcome"] == "purchased" and run_result["product"]:
+            print(f"[Explore] Found {run_result['product']['name']} @ ${run_result['product']['price']} — candidate (awaiting approval)")
 
         run_result["payment"] = payment_result
 
@@ -213,9 +196,13 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
         print(f"  Lesson:   {lesson}")
         print(f"{'='*60}")
 
-    # ── Save bandit state for next session (FIX #2: learning persists) ──
+    # ── Save bandit state for next session (learning persists) ──
     bandit.save(BANDIT_STATE_PATH)
     print(f"[Bandit] State saved to {BANDIT_STATE_PATH} — learning persists to next run")
+
+    # ── Identify best candidate for human approval ──────────────────
+    purchased_runs = [r for r in all_results if r["outcome"] == "purchased" and r.get("product")]
+    best_candidate = max(purchased_runs, key=lambda r: r["reward"]) if purchased_runs else None
 
     # ── Final summary ───────────────────────────────────────────────
     rewards = [r["reward"] for r in all_results]
@@ -228,17 +215,60 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
     print(f"  Run {total_runs} reward: {rewards[-1]} pts")
     print(f"  Improvement:   {rewards[-1] - rewards[0]:+} pts")
     print(f"  Best run:      Run {best_idx+1} ({max(rewards)} pts)")
-    if best_run.get("product"):
-        print(f"  Best product:  {best_run['product']['name']} @ ${best_run['product']['price']}")
-    print(f"  Payment:       Final episode only (episodes 1-{total_runs-1} were exploration)")
+    if best_candidate:
+        print(f"  Best product:  {best_candidate['product']['name']} @ ${best_candidate['product']['price']}")
+    print(f"  Payment:       NONE — awaiting human approval in UI")
     print(f"{'🏆 '*20}\n")
 
     # Save full results for dashboard
+    output = {
+        "runs": all_results,
+        "best_candidate": best_candidate,
+    }
     with open("run_results.json", "w") as f:
-        json.dump(all_results, f, indent=2, default=str)
+        json.dump(output, f, indent=2, default=str)
     print("Results saved to run_results.json")
 
-    return all_results
+    return output
+
+
+def execute_approved_purchase(product: dict, context_graph: dict) -> dict:
+    """
+    Execute payment AFTER the user has explicitly approved the product.
+    Called from the Streamlit UI when user clicks "Buy This".
+    """
+    session_id = "approved-" + uuid.uuid4().hex[:8]
+    auth_result = issue_credential(context_graph, session_id, run_number=99)
+    credential = auth_result["credential"]
+    site_key = product.get("site", "unknown") + ".com"
+    auth_check = verify_credential(credential, site_key, product["price"])
+
+    if auth_check["cleared"]:
+        result = execute_payment(product, credential, auth_check)
+        if result["success"]:
+            print(f"[Payment] ✅ Approved purchase: ${product['price']} for {product['name']}")
+        return result
+    return {"success": False, "reason": auth_check.get("reason", "Auth failed")}
+
+
+def apply_rejection_feedback(feedback: str, last_strategy: dict):
+    """
+    Called when user rejects the best candidate.
+    Applies negative reward to the bandit + stores feedback for next run.
+    """
+    # Penalize the strategy that produced the rejected product
+    if Path(BANDIT_STATE_PATH).exists():
+        bandit = RLAgent.load(BANDIT_STATE_PATH)
+        bandit.update(last_strategy, reward=-30)  # strong negative signal
+        bandit.save(BANDIT_STATE_PATH)
+        print(f"[Bandit] Applied -30 penalty to strategy: {last_strategy}")
+
+    # Store feedback so the shopping agent sees it next run
+    memory = MemoryAgent()
+    cg = memory.load()
+    cg["user"]["feedback"] = feedback
+    memory._save(cg)
+    print(f"[Memory] Stored rejection feedback: {feedback}")
 
 
 if __name__ == "__main__":

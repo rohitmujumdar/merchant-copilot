@@ -208,6 +208,12 @@ if "preferences_extracted" not in st.session_state:
     st.session_state.preferences_extracted = False
 if "run_progress" not in st.session_state:
     st.session_state.run_progress = []
+if "awaiting_approval" not in st.session_state:
+    st.session_state.awaiting_approval = False
+if "best_candidate" not in st.session_state:
+    st.session_state.best_candidate = None
+if "show_feedback" not in st.session_state:
+    st.session_state.show_feedback = False
 
 
 # ── Sidebar ─────────────────────────────────────────────────────────────────
@@ -382,6 +388,9 @@ Include optional fields only if the user mentioned them. Omit them if not mentio
                         "approved_categories": ["footwear"],
                         "require_approval_first_n_runs": 3,
                     }
+                    # Store original query text so shopping agent can use exact terms
+                    user_msgs = [m["content"] for m in st.session_state.chat_history if m["role"] == "user"]
+                    cg["user"]["original_query"] = " | ".join(user_msgs)
                     CONTEXT_GRAPH_PATH.write_text(json.dumps(cg, indent=2))
                     st.session_state.preferences_extracted = True
                     st.success("Profile saved! Head to **Run Agent** to start shopping.")
@@ -404,6 +413,7 @@ Include optional fields only if the user mentioned them. Omit them if not mentio
                 spend_cap = st.number_input("Agent spend cap ($)", min_value=30, max_value=500, value=150)
                 specific_product = st.text_input("Specific product (optional)", placeholder="e.g. Jordan 4 Retro")
             custom_instructions = st.text_area("Custom instructions (optional)", placeholder="e.g. Ask me before buying anything that isn't Jordan")
+            search_query = st.text_input("What are you looking for? (natural language)", placeholder="e.g. blue Nike Jordan 4 Retro basketball shoes")
 
             if st.form_submit_button("Save Profile", type="primary"):
                 cg = json.loads(CONTEXT_GRAPH_PATH.read_text()) if CONTEXT_GRAPH_PATH.exists() else {"user": {}, "history": [], "learned_insights": []}
@@ -416,6 +426,12 @@ Include optional fields only if the user mentioned them. Omit them if not mentio
                     user_prefs["custom_instructions"] = custom_instructions
                 cg["user"]["preferences"] = user_prefs
                 cg["user"]["trust_rules"] = {"max_autonomous_spend": spend_cap, "approved_categories": ["footwear"], "require_approval_first_n_runs": 3}
+                # Store original query for shopping agent search terms
+                if search_query:
+                    cg["user"]["original_query"] = search_query
+                else:
+                    # Construct from fields
+                    cg["user"]["original_query"] = f"{color} {' '.join(brands)} {specific_product} {style} shoes size {size}".strip()
                 CONTEXT_GRAPH_PATH.write_text(json.dumps(cg, indent=2))
                 st.success("Profile saved! Head to **Run Agent** to start shopping.")
                 st.session_state.preferences_extracted = True
@@ -480,13 +496,15 @@ elif st.session_state.screen == "run":
             progress_bar = st.progress(0, text="Starting...")
             try:
                 from run_loop import run_full_loop
-                with st.spinner(f"Running {num_runs} episodes — STRIDE is shopping across real websites..."):
-                    results = run_full_loop(total_runs=num_runs)
-                st.session_state.results = results
+                with st.spinner(f"Running {num_runs} episodes — STRIDE is exploring (no purchase yet)..."):
+                    output = run_full_loop(total_runs=num_runs)
+                st.session_state.results = output
+                st.session_state.best_candidate = output.get("best_candidate")
+                st.session_state.awaiting_approval = True
                 progress_bar.progress(100, text="Complete!")
-                st.success(f"Done! {num_runs} episodes completed. Go to **Results Dashboard**.")
             except Exception as e:
                 st.error(f"Run failed: {e}")
+                st.session_state.awaiting_approval = False
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_load:
@@ -496,10 +514,74 @@ elif st.session_state.screen == "run":
         if st.button("📂 Load from run_results.json", use_container_width=True):
             if RUN_RESULTS_PATH.exists():
                 st.session_state.results = json.loads(RUN_RESULTS_PATH.read_text())
-                st.success(f"Loaded {len(st.session_state.results)} runs.")
+                st.session_state.best_candidate = st.session_state.results.get("best_candidate")
+                st.session_state.awaiting_approval = bool(st.session_state.best_candidate)
+                st.success("Loaded previous results.")
             else:
                 st.error("No run_results.json found.")
         st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── HUMAN APPROVAL GATE ─────────────────────────────────────────────
+    if st.session_state.get("awaiting_approval") and st.session_state.get("best_candidate"):
+        candidate = st.session_state.best_candidate
+        product = candidate["product"]
+
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h3>Best Product Found — Your Approval Needed</h3></div>', unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div class="card-highlight" style="padding: 24px;">
+            <div style="font-size: 1.3rem; font-weight: 700; color: #e2e8f0;">{product['name']}</div>
+            <div style="margin-top: 8px; color: #8b95a5;">
+                Brand: <strong>{product.get('brand', '?')}</strong> &bull;
+                Price: <strong style="color: #10b981;">${product['price']}</strong> &bull;
+                Site: <strong>{candidate['strategy']['site']}</strong> &bull;
+                Reward: <strong>{candidate['reward']} pts</strong>
+            </div>
+            {f'<div style="margin-top: 8px;"><a href="{product["url"]}" target="_blank" style="color: #60a5fa;">View on site</a></div>' if product.get('url') else ''}
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_approve, col_reject = st.columns(2)
+        with col_approve:
+            if st.button("✅ Buy This", type="primary", use_container_width=True):
+                from run_loop import execute_approved_purchase
+                cg_current = json.loads(CONTEXT_GRAPH_PATH.read_text())
+                pay_result = execute_approved_purchase(product, cg_current)
+                if pay_result.get("success"):
+                    st.success(f"Purchased! Confirmation: {pay_result.get('confirmation_id')}")
+                else:
+                    st.error(f"Payment failed: {pay_result.get('reason')}")
+                st.session_state.awaiting_approval = False
+                # Clear feedback from previous rejections
+                cg_current.pop("feedback", None)
+                if "user" in cg_current:
+                    cg_current["user"].pop("feedback", None)
+                CONTEXT_GRAPH_PATH.write_text(json.dumps(cg_current, indent=2))
+
+        with col_reject:
+            if st.button("❌ Not what I wanted", use_container_width=True):
+                st.session_state.show_feedback = True
+
+        if st.session_state.get("show_feedback"):
+            feedback = st.text_input("What's wrong? What do you actually want?", placeholder="e.g. I said Jordan 4 not Pegasus")
+            if st.button("Re-run with feedback", type="primary"):
+                if feedback:
+                    from run_loop import apply_rejection_feedback, run_full_loop
+                    apply_rejection_feedback(feedback, candidate["strategy"])
+                    st.session_state.show_feedback = False
+                    st.session_state.awaiting_approval = False
+                    with st.spinner("Re-running with your feedback..."):
+                        output = run_full_loop(total_runs=num_runs)
+                    st.session_state.results = output
+                    st.session_state.best_candidate = output.get("best_candidate")
+                    st.session_state.awaiting_approval = True
+                    st.rerun()
+                else:
+                    st.warning("Please enter feedback so the agent knows what to look for.")
+    elif st.session_state.get("awaiting_approval") and not st.session_state.get("best_candidate"):
+        st.warning("Agent explored but couldn't find a product matching your criteria. Try adjusting preferences.")
+        st.session_state.awaiting_approval = False
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -507,10 +589,18 @@ elif st.session_state.screen == "run":
 # ══════════════════════════════════════════════════════════════════════════════
 elif st.session_state.screen == "results":
 
-    results = st.session_state.get("results")
-    if not results and RUN_RESULTS_PATH.exists():
-        results = json.loads(RUN_RESULTS_PATH.read_text())
-        st.session_state.results = results
+    raw_results = st.session_state.get("results")
+    if not raw_results and RUN_RESULTS_PATH.exists():
+        raw_results = json.loads(RUN_RESULTS_PATH.read_text())
+        st.session_state.results = raw_results
+
+    # Handle both old format (list) and new format (dict with "runs" key)
+    if isinstance(raw_results, dict):
+        results = raw_results.get("runs", [])
+    elif isinstance(raw_results, list):
+        results = raw_results
+    else:
+        results = []
 
     if not results:
         st.info("No results yet. Run the agent first in the **Run Agent** tab.")
