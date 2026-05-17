@@ -362,8 +362,9 @@
     </div>
 
     <div class="callout" style="border-left-color: #10b981;">
-        <div class="callout-title">Learning persists:</div>
-        <p>Beta distributions are <strong>saved to disk</strong> after each session. Next time the user shops, the agent <em>continues</em> learning from where it left off &mdash; it doesn't start from scratch every time.</p>
+        <div class="callout-title">What persists vs. resets between queries:</div>
+        <p><strong>Persists:</strong> Beta distributions (<code>bandit_state.json</code>) &mdash; the agent keeps its learned shopping strategies across queries. If it learned that Zappos is fast, that knowledge carries over.</p>
+        <p style="margin-top:6px;"><strong>Resets:</strong> User preferences, original query, feedback, trust rules (<code>context_graph.json → user</code>) &mdash; fully replaced on each new query. No stale "blue size 10" leaking into a "red size 9" search.</p>
     </div>
 
     <!-- The outer loop diagram -->
@@ -1246,41 +1247,45 @@
         <div class="callout-title">The key insight</div>
         <p><strong>Episode 1 is pure exploration</strong> &mdash; Beta(1,1) is a uniform distribution, so all samples are random. The agent has zero knowledge and picks a strategy by luck alone.</p>
         <p style="margin-top:8px;">By <strong>Episode 5-6</strong>, winning arms accumulate enough alpha to reliably sample highest. That's when the agent has <em>converged</em> on a strategy. By Episode 10 (the purchase episode), it uses its best learned approach.</p>
-        <p style="margin-top:8px;"><strong>Learning persists:</strong> Next time you search (e.g., "find me Nike trail shoes"), the bandit starts from its saved state &mdash; not from scratch. If zappos worked well for HOKA, it'll try zappos early for Nike too.</p>
+        <p style="margin-top:8px;"><strong>Bandit learning persists:</strong> Next time you search (e.g., "find me Nike trail shoes"), the bandit starts from its saved Beta state &mdash; not from scratch. If zappos worked well for HOKA, it'll try zappos early for Nike too. But your <em>preferences</em> (brands, size, color, budget) reset cleanly to match the new query.</p>
     </div>
 
     <!-- Persistence diagram -->
     <div class="diagram-container" style="margin-top: 24px;">
-        <div class="diagram-title">LEARNING COMPOUNDS ACROSS SESSIONS</div>
-        <svg viewBox="0 0 900 120" style="max-width:900px; display:block; margin:0 auto;">
+        <div class="diagram-title">WHAT PERSISTS vs. RESETS BETWEEN QUERIES</div>
+        <svg viewBox="0 0 900 160" style="max-width:900px; display:block; margin:0 auto;">
             <!-- Session 1 -->
-            <rect x="20" y="20" width="250" height="80" rx="10" fill="rgba(96,165,250,0.12)" stroke="#60a5fa" stroke-width="1.5"/>
-            <text x="145" y="42" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">SESSION 1: "blue hoka shoes"</text>
-            <text x="145" y="60" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">10 episodes &rarr; learns zappos is best</text>
-            <text x="145" y="78" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">zappos: Beta(4.2, 1.8) &mdash; strong</text>
-            <text x="145" y="92" text-anchor="middle" fill="#10b981" font-size="8">Saves to bandit_state.json</text>
+            <rect x="20" y="20" width="250" height="60" rx="10" fill="rgba(96,165,250,0.12)" stroke="#60a5fa" stroke-width="1.5"/>
+            <text x="145" y="42" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">QUERY 1: "blue hoka shoes"</text>
+            <text x="145" y="60" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">prefs: hoka, blue, size 10, $150</text>
+            <text x="145" y="74" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">zappos: Beta(4.2, 1.8)</text>
 
             <!-- Arrow -->
-            <path d="M 270 60 L 330 60" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead)"/>
-            <text x="300" y="52" text-anchor="middle" fill="#10b981" font-size="8">persists</text>
+            <path d="M 270 50 L 330 50" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="300" y="42" text-anchor="middle" fill="#10b981" font-size="8">new query</text>
 
             <!-- Session 2 -->
-            <rect x="335" y="20" width="250" height="80" rx="10" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
-            <text x="460" y="42" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">SESSION 2: "nike trail shoes"</text>
-            <text x="460" y="60" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Loads Beta(4.2, 1.8) for zappos</text>
-            <text x="460" y="78" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Starts with knowledge, explores less</text>
-            <text x="460" y="92" text-anchor="middle" fill="#10b981" font-size="8">Saves updated state</text>
+            <rect x="335" y="20" width="260" height="60" rx="10" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="465" y="42" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">QUERY 2: "red nike trail size 9"</text>
+            <text x="465" y="60" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">prefs: nike, red, size 9, $120 (FRESH)</text>
+            <text x="465" y="74" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">zappos: Beta(4.2, 1.8) (KEPT)</text>
 
-            <!-- Arrow -->
-            <path d="M 585 60 L 645 60" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead)"/>
-            <text x="615" y="52" text-anchor="middle" fill="#10b981" font-size="8">persists</text>
+            <!-- Persistence line (bandit) -->
+            <rect x="20" y="100" width="575" height="24" rx="6" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="1"/>
+            <text x="307" y="116" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">&#x2705; PERSISTS: bandit_state.json (Beta weights for all 16 arms)</text>
 
-            <!-- Session 3 -->
-            <rect x="650" y="20" width="230" height="80" rx="10" fill="rgba(16,185,129,0.12)" stroke="#10b981" stroke-width="2"/>
-            <text x="765" y="42" text-anchor="middle" fill="#10b981" font-size="10" font-weight="700">SESSION 3+</text>
-            <text x="765" y="60" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">30 episodes of experience!</text>
-            <text x="765" y="78" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Agent is now an expert shopper</text>
-            <text x="765" y="92" text-anchor="middle" fill="#10b981" font-size="8" font-weight="700">Exploits &gt; explores</text>
+            <!-- Reset line (context_graph user) -->
+            <rect x="20" y="130" width="575" height="24" rx="6" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="1"/>
+            <text x="307" y="146" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">&#x1F504; RESETS: context_graph.json &rarr; user (prefs, query, feedback, trust rules)</text>
+
+            <!-- Summary box -->
+            <rect x="630" y="20" width="250" height="134" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <text x="755" y="44" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="10" font-weight="700">WHY?</text>
+            <text x="755" y="64" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Bandit persists: "zappos is fast"</text>
+            <text x="755" y="80" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">is useful for ANY shoe search.</text>
+            <text x="755" y="100" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">Prefs reset: "blue hoka size 10"</text>
+            <text x="755" y="116" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">must NOT leak into a "red nike"</text>
+            <text x="755" y="132" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8">search. Clean slate per query.</text>
         </svg>
     </div>
 </section>
@@ -1667,6 +1672,11 @@ response = client.messages.create(
                 <td><strong>Persistent Beta state</strong></td>
                 <td>Reset every session</td>
                 <td>Learning compounds. User shops 3x &rarr; agent has 30 episodes of experience. Saved to bandit_state.json.</td>
+            </tr>
+            <tr>
+                <td><strong>Clean user context per query</strong></td>
+                <td>Merge with previous</td>
+                <td>No stale preferences leak. "Blue HOKA size 10" won't contaminate a "red Nike size 9" search. Full user section replaced.</td>
             </tr>
             <tr>
                 <td><strong>Reflexion lessons</strong></td>
