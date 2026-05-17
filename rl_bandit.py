@@ -150,6 +150,22 @@ class RLAgent:
         """Get current learned weights for all bandits (for dashboard)."""
         return {name: bandit.get_weights() for name, bandit in self.bandits.items()}
 
+    def get_detailed_state(self) -> dict:
+        """Get full alpha/beta/mean for all arms — used by the dashboard for detailed viz."""
+        state = {}
+        for name, bandit in self.bandits.items():
+            state[name] = []
+            for arm in bandit.arms:
+                mean = arm.alpha / (arm.alpha + arm.beta)
+                state[name].append({
+                    "arm": arm.name,
+                    "alpha": round(arm.alpha, 2),
+                    "beta": round(arm.beta, 2),
+                    "mean": round(mean, 3),
+                    "times_chosen": arm.times_chosen,
+                })
+        return state
+
     def get_run_history(self) -> list:
         return self.run_history
 

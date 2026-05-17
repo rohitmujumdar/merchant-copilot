@@ -822,24 +822,48 @@ elif st.session_state.screen == "results":
 
     st.markdown("")
 
-    # ── Bandit Weights ──────────────────────────────────────────────────────
-    st.markdown('<div class="section-header"><h3>🎰 Thompson Sampling Evolution</h3></div>', unsafe_allow_html=True)
-    st.caption("How the 4 independent bandits shift their preferences across runs")
+    # ── Agent's Learned Preferences ───────────────────────────────────────────
+    st.markdown('<div class="section-header"><h3>🎰 Agent\'s Learned Preferences</h3></div>', unsafe_allow_html=True)
+    st.caption("What the agent currently believes works best for you — based on Thompson Sampling")
 
-    dimensions = ["site", "query_style", "filter_strategy", "abandon_threshold"]
-    tabs = st.tabs(["🌐 Site", "🔍 Query Style", "📊 Filter Strategy", "🚪 Abandon Threshold"])
+    # Show the FINAL state (what the agent learned after all episodes)
+    final_state = results[-1].get("bandit_state", {})
+    if final_state:
+        dim_labels = {
+            "site": ("🌐 Best Site", "Which shopping site finds your products fastest"),
+            "query_style": ("🔍 Search Strategy", "How specific the search query should be"),
+            "filter_strategy": ("📊 Filter Priority", "What to optimize for when comparing results"),
+            "abandon_threshold": ("🚪 Patience", "How many failures before trying another site"),
+        }
 
-    for tab, dim in zip(tabs, dimensions):
-        with tab:
-            rows = []
-            for r in results:
-                weights = r.get("bandit_weights", {}).get(dim, {})
-                for arm, weight in weights.items():
-                    rows.append({"Run": r["run"], "Arm": arm, "Weight": weight})
-            if rows:
-                df = pd.DataFrame(rows)
-                pivot = df.pivot(index="Run", columns="Arm", values="Weight")
-                st.line_chart(pivot, height=280)
+        cols = st.columns(2)
+        for i, (dim, arms) in enumerate(final_state.items()):
+            label, desc = dim_labels.get(dim, (dim, ""))
+            with cols[i % 2]:
+                st.markdown(f"**{label}**")
+                st.caption(desc)
+                bar_data = pd.DataFrame(arms)
+                bar_data = bar_data.sort_values("mean", ascending=True)
+                st.bar_chart(bar_data, x="arm", y="mean", height=200, color="#60a5fa")
+
+        st.markdown("")
+
+    # Evolution over episodes (collapsible)
+    with st.expander("📈 How preferences shifted across episodes"):
+        dimensions = ["site", "query_style", "filter_strategy", "abandon_threshold"]
+        tabs = st.tabs(["🌐 Site", "🔍 Query", "📊 Filter", "🚪 Patience"])
+
+        for tab, dim in zip(tabs, dimensions):
+            with tab:
+                rows = []
+                for r in results:
+                    weights = r.get("bandit_weights", {}).get(dim, {})
+                    for arm, weight in weights.items():
+                        rows.append({"Run": r["run"], "Arm": arm, "Weight": weight})
+                if rows:
+                    df = pd.DataFrame(rows)
+                    pivot = df.pivot(index="Run", columns="Arm", values="Weight")
+                    st.line_chart(pivot, height=250)
 
     st.markdown("")
 

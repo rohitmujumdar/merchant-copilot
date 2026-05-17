@@ -190,6 +190,7 @@ def run_full_loop(total_runs: int = TOTAL_RUNS, status_callback=None) -> list[di
             "payment": payment_result,
             "reasoning_trace": run_result["reasoning_trace"],
             "bandit_weights": bandit_weights,
+            "bandit_state": bandit.get_detailed_state(),
             "lesson": lesson,
         }
         all_results.append(run_summary)
