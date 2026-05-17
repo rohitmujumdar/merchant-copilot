@@ -6,7 +6,7 @@ Reads context graph at run start (working memory).
 Writes ONLY after run completes (never mid-run).
 
 Two jobs:
-1. READ: Load context graph, assign cohort prior for new users
+1. READ: Load context graph for agents to use
 2. WRITE: Update history[], learned_insights[], rl_weights after each run
 """
 
@@ -16,68 +16,19 @@ from pathlib import Path
 
 CONTEXT_GRAPH_PATH = "context_graph.json"
 
-CONTEXT_GRAPH_SCHEMA_VERSION = "1.0"
+CONTEXT_GRAPH_SCHEMA_VERSION = "1.1"
 """
-Schema for context_graph.json (FROZEN — v1.0):
+Schema for context_graph.json (v1.1 — removed unused cohort priors):
 {
   "user": {
     "preferences": {"brands": [str], "size": int, "budget": int, "max_delivery_days": int, "style": str},
     "trust_rules": {"max_autonomous_spend": int, "approved_categories": [str], "require_approval_first_n_runs": int}
   },
-  "cohort": str,
   "rl_weights": {"site": {...}, "query_style": {...}, ...},
   "history": [{"run": int, "timestamp": str, "strategy": dict, "reward": float, "outcome": str}],
   "learned_insights": [{"run": int, "lesson": str}]   ← always dicts, not plain strings
 }
-Do NOT rename/remove fields without bumping the version.
 """
-
-# --- Cohort Priors ---
-# New users have no history. We assign them a starting strategy
-# based on their stated preferences. The RL bandit refines from there.
-
-COHORT_PRIORS = {
-    "brand_loyal": {
-        "description": "User names specific brands they love",
-        "trigger": lambda prefs: len(prefs.get("brands", [])) > 0 and prefs.get("budget", 999) > 100,
-        "rl_weights": {
-            "site": {"zappos": 0.6, "nike": 0.3, "amazon": 0.1},
-            "query_style": {"broad": 0.1, "moderate": 0.3, "specific": 0.6},
-            "filter_strategy": {"price_first": 0.1, "brand_first": 0.6, "rating_first": 0.2, "size_first": 0.1},
-            "abandon_threshold": {"after_1_fail": 0.5, "after_2_fails": 0.3, "after_3_fails": 0.2},
-        }
-    },
-    "price_sensitive": {
-        "description": "User has tight budget (under $80)",
-        "trigger": lambda prefs: prefs.get("budget", 999) <= 80,
-        "rl_weights": {
-            "site": {"zappos": 0.3, "nike": 0.2, "amazon": 0.5},
-            "query_style": {"broad": 0.2, "moderate": 0.4, "specific": 0.4},
-            "filter_strategy": {"price_first": 0.6, "brand_first": 0.1, "rating_first": 0.2, "size_first": 0.1},
-            "abandon_threshold": {"after_1_fail": 0.2, "after_2_fails": 0.5, "after_3_fails": 0.3},
-        }
-    },
-    "speed_first": {
-        "description": "User needs fast delivery (1-2 days max)",
-        "trigger": lambda prefs: prefs.get("max_delivery_days", 99) <= 2,
-        "rl_weights": {
-            "site": {"zappos": 0.4, "nike": 0.1, "amazon": 0.5},
-            "query_style": {"broad": 0.2, "moderate": 0.4, "specific": 0.4},
-            "filter_strategy": {"price_first": 0.1, "brand_first": 0.2, "rating_first": 0.1, "size_first": 0.6},
-            "abandon_threshold": {"after_1_fail": 0.6, "after_2_fails": 0.3, "after_3_fails": 0.1},
-        }
-    },
-    "default": {
-        "description": "Balanced starting point",
-        "trigger": lambda prefs: True,
-        "rl_weights": {
-            "site": {"zappos": 0.34, "nike": 0.33, "amazon": 0.33},
-            "query_style": {"broad": 0.34, "moderate": 0.33, "specific": 0.33},
-            "filter_strategy": {"price_first": 0.25, "brand_first": 0.25, "rating_first": 0.25, "size_first": 0.25},
-            "abandon_threshold": {"after_1_fail": 0.34, "after_2_fails": 0.33, "after_3_fails": 0.33},
-        }
-    }
-}
 
 
 class MemoryAgent:
@@ -96,33 +47,12 @@ class MemoryAgent:
 
     def get_working_memory(self) -> dict:
         """
-        Load context graph and assign cohort prior if first run.
-        Returns the full context graph ready for agents to use.
+        Load context graph. Returns it ready for agents to use.
         """
         cg = self.load()
-        prefs = cg["user"]["preferences"]
-
-        # First run — no rl_weights yet. Assign cohort prior.
-        if "rl_weights" not in cg:
-            cohort, prior = self._assign_cohort(prefs)
-            cg["cohort"] = cohort
-            cg["rl_weights"] = prior["rl_weights"]
-            self._save(cg)
-            print(f"[Memory] New user — assigned cohort: {cohort} ({prior['description']})")
-        else:
-            print(f"[Memory] Loaded context graph. Cohort: {cg.get('cohort', 'unknown')}. "
-                  f"Runs completed: {len(cg.get('history', []))}")
-
+        runs = len(cg.get("history", []))
+        print(f"[Memory] Loaded context graph. Runs completed: {runs}")
         return cg
-
-    def _assign_cohort(self, prefs: dict) -> tuple[str, dict]:
-        """Assign the best matching cohort prior for a new user."""
-        for name, cohort in COHORT_PRIORS.items():
-            if name == "default":
-                continue
-            if cohort["trigger"](prefs):
-                return name, cohort
-        return "default", COHORT_PRIORS["default"]
 
     # ------------------------------------------------------------------ #
     # WRITE — called after run completes, never during
@@ -204,13 +134,10 @@ if __name__ == "__main__":
 
     print("=== Memory Agent Test ===\n")
 
-    # Simulate loading working memory (first run)
     print("--- Loading working memory ---")
     wm = memory.get_working_memory()
-    print(f"Cohort: {wm.get('cohort')}")
     print(f"RL weights: {wm.get('rl_weights')}\n")
 
-    # Simulate writing a run result
     print("--- Writing run 1 result ---")
     memory.write_run_result(
         run_number=1,
@@ -227,6 +154,5 @@ if __name__ == "__main__":
         lesson="Amazon returned CAPTCHA on run 1 — deprioritize Amazon for early runs."
     )
 
-    # Get history summary for Shopper Agent
     print("\n--- History summary for Shopper Agent ---")
     print(memory.get_history_summary())

@@ -262,7 +262,6 @@
       "lesson": "Price-first filtering on Zappos efficiently secures full-match items under budget with fast delivery."
     }
   ],
-  "cohort": "brand_loyal",
   "rl_weights": {
     "site": {
       "zappos": 0.135,

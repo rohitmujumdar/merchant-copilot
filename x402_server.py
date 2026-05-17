@@ -150,7 +150,7 @@ async def agent_profile():
         "trust_rules": cg["user"]["trust_rules"],
         "learned_weights": cg.get("rl_weights", {}),
         "learned_insights": cg.get("learned_insights", [])[-5:],  # last 5 lessons
-        "cohort": cg.get("cohort", "new_user"),
+        "total_sessions": len(cg.get("history", [])) // 10,  # approx sessions completed
         "total_runs": len(cg.get("history", [])),
         "payment": {
             "protocol": "x402",
