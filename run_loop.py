@@ -79,41 +79,43 @@ Do NOT rename/remove fields without bumping the version.
 """
 
 
-def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
+def run_full_loop(total_runs: int = TOTAL_RUNS, status_callback=None) -> list[dict]:
     """
     Run all episodes. Returns list of results for dashboard.
 
     Design:
-      - Episodes 1 through N-1 are SIMULATED exploration (no real payment).
-      - Episode N (the final one) is the PURCHASE CANDIDATE — presented to user.
+      - ALL episodes are SIMULATED exploration (no real payment).
+      - After loop, best candidate is presented to human for approval.
       - Bandit state persists across run_full_loop() calls so learning compounds.
+
+    Args:
+      status_callback: optional fn(message: str) called at key moments for live UI updates.
 
     Output schema: see RUN_RESULTS_SCHEMA_VERSION above.
     """
+    def log(msg: str):
+        print(msg)
+        if status_callback:
+            status_callback(msg)
     memory = MemoryAgent()
 
     # ── FIX #2: Load persisted bandit state (learning compounds across sessions)
     if Path(BANDIT_STATE_PATH).exists():
         bandit = RLAgent.load(BANDIT_STATE_PATH)
-        print("[Bandit] Loaded saved state — continuing from previous learning")
+        log("[Bandit] Loaded saved state — continuing from previous learning")
     else:
         bandit = RLAgent()
-        print("[Bandit] Fresh start — no previous learning found")
+        log("[Bandit] Fresh start — no previous learning found")
 
     session_id = uuid.uuid4().hex[:8]
 
     all_results = []
 
-    print("\n" + "🛒 " * 20)
-    print("STRIDE — RL SHOPPING AGENT")
-    print(f"Running {total_runs} episodes ({total_runs - 1} exploration + 1 purchase candidate).")
-    print("🛒 " * 20 + "\n")
+    log(f"🛒 Starting {total_runs} exploration episodes...")
 
     for run_number in range(1, total_runs + 1):
 
-        print(f"\n{'─'*60}")
-        print(f"EPISODE {run_number}/{total_runs}")
-        print(f"{'─'*60}")
+        log(f"━━━ Episode {run_number}/{total_runs} ━━━")
 
         # ── 1. MEMORY AGENT: Load context ──────────────────────────
         context_graph = memory.get_working_memory()
@@ -121,14 +123,15 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
 
         # ── 2. RL BANDIT: Pick strategy ────────────────────────────
         strategy = bandit.select_strategy()
-        print(f"[Bandit] Strategy: {strategy}")
+        log(f"🎰 Strategy: {strategy['site']} | {strategy['query_style']} | {strategy['filter_strategy']}")
 
         # ── 3. AUTH AGENT: Issue credential ────────────────────────
         auth_result = issue_credential(context_graph, session_id, run_number)
         credential = auth_result["credential"]
-        print(f"[Auth] Credential issued. Spend cap: ${credential['max_autonomous_spend']}")
+        log(f"🔑 Auth issued (cap: ${credential['max_autonomous_spend']})")
 
         # ── 4. SHOPPER AGENT: Claude does the shopping ─────────────
+        log(f"🔍 Shopping on {strategy['site']}...")
         run_result = run_shopping_episode(
             context_graph=context_graph,
             strategy=strategy,
@@ -141,7 +144,11 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
         # Payment requires explicit human approval via the Streamlit UI.
         payment_result = {"success": False, "reason": "Awaiting human approval"}
         if run_result["outcome"] == "purchased" and run_result["product"]:
-            print(f"[Explore] Found {run_result['product']['name']} @ ${run_result['product']['price']} — candidate (awaiting approval)")
+            log(f"✅ Found: {run_result['product']['name']} @ ${run_result['product']['price']}")
+        elif run_result["outcome"] == "found_not_purchased":
+            log(f"⚠️ Found product but didn't match criteria well")
+        else:
+            log(f"❌ No product found on {strategy['site']}")
 
         run_result["payment"] = payment_result
 
@@ -155,10 +162,11 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
             reward_breakdown=run_result["reward_breakdown"],
             steps=run_result["steps"],
         )
+        log(f"📊 Reward: {run_result['reward']} pts ({run_result['steps']} steps)")
 
         # ── 7. REFLEXION: Generate lesson ──────────────────────────
         lesson = generate_reflexion(run_result, context_graph)
-        print(f"[Reflexion] Lesson: {lesson}")
+        log(f"💡 Lesson: {lesson}")
 
         # ── 8. MEMORY AGENT: Write results ─────────────────────────
         memory.write_run_result(
@@ -186,19 +194,9 @@ def run_full_loop(total_runs: int = TOTAL_RUNS) -> list[dict]:
         }
         all_results.append(run_summary)
 
-        # ── Print episode summary ───────────────────────────────────
-        print(f"\n{'='*60}")
-        print(f"RUN {run_number} SUMMARY")
-        print(f"  Outcome:  {run_result['outcome']}")
-        print(f"  Reward:   {run_result['reward']} pts")
-        print(f"  Steps:    {run_result['steps']}")
-        print(f"  Strategy: {strategy['site']} | {strategy['query_style']} | {strategy['filter_strategy']}")
-        print(f"  Lesson:   {lesson}")
-        print(f"{'='*60}")
-
     # ── Save bandit state for next session (learning persists) ──
     bandit.save(BANDIT_STATE_PATH)
-    print(f"[Bandit] State saved to {BANDIT_STATE_PATH} — learning persists to next run")
+    log(f"🧠 Bandit state saved — learning persists to next run")
 
     # ── Identify best candidate for human approval ──────────────────
     purchased_runs = [r for r in all_results if r["outcome"] == "purchased" and r.get("product")]

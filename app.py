@@ -499,15 +499,22 @@ elif st.session_state.screen == "run":
         st.markdown('<div class="card-highlight">', unsafe_allow_html=True)
         num_runs = st.slider("Number of episodes", min_value=3, max_value=10, value=10)
         if st.button("🚀 Run Agent Live", type="primary", use_container_width=True):
-            progress_bar = st.progress(0, text="Starting...")
             try:
                 from run_loop import run_full_loop
-                with st.spinner(f"Running {num_runs} episodes — STRIDE is exploring (no purchase yet)..."):
-                    output = run_full_loop(total_runs=num_runs)
+                status_container = st.status(f"Running {num_runs} episodes...", expanded=True)
+                log_area = status_container.empty()
+                logs = []
+
+                def on_status(msg):
+                    logs.append(msg)
+                    # Show last 12 lines to keep it readable
+                    log_area.code("\n".join(logs[-12:]), language=None)
+
+                output = run_full_loop(total_runs=num_runs, status_callback=on_status)
+                status_container.update(label="✅ All episodes complete!", state="complete")
                 st.session_state.results = output
                 st.session_state.best_candidate = output.get("best_candidate")
                 st.session_state.awaiting_approval = True
-                progress_bar.progress(100, text="Complete!")
             except Exception as e:
                 st.error(f"Run failed: {e}")
                 st.session_state.awaiting_approval = False
@@ -577,8 +584,16 @@ elif st.session_state.screen == "run":
                     apply_rejection_feedback(feedback, candidate["strategy"])
                     st.session_state.show_feedback = False
                     st.session_state.awaiting_approval = False
-                    with st.spinner("Re-running with your feedback..."):
-                        output = run_full_loop(total_runs=num_runs)
+                    status_container = st.status(f"Re-running {num_runs} episodes with feedback...", expanded=True)
+                    log_area = status_container.empty()
+                    logs = []
+
+                    def on_status(msg):
+                        logs.append(msg)
+                        log_area.code("\n".join(logs[-12:]), language=None)
+
+                    output = run_full_loop(total_runs=num_runs, status_callback=on_status)
+                    status_container.update(label="✅ Re-run complete!", state="complete")
                     st.session_state.results = output
                     st.session_state.best_candidate = output.get("best_candidate")
                     st.session_state.awaiting_approval = True
