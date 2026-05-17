@@ -23,32 +23,32 @@ _live_cache: dict = {}  # cache per site per run so we don't re-fetch mid-episod
 # --- Product Catalogs ---
 
 ZAPPOS_CATALOG = [
-    {"name": "Nike Air Zoom Pegasus 41", "brand": "Nike", "price": 109, "rating": 4.6, "sizes": [8, 9, 10, 11, 12], "delivery_days": 2, "in_stock": True},
-    {"name": "Nike Revolution 7", "brand": "Nike", "price": 74, "rating": 4.2, "sizes": [9, 10, 11], "delivery_days": 3, "in_stock": True},
-    {"name": "Adidas Ultraboost Light", "brand": "Adidas", "price": 118, "rating": 4.7, "sizes": [8, 9, 10, 11, 12], "delivery_days": 2, "in_stock": True},
-    {"name": "Adidas Runfalcon 5", "brand": "Adidas", "price": 65, "rating": 4.0, "sizes": [10, 11, 12], "delivery_days": 3, "in_stock": True},
-    {"name": "Nike Vomero 18", "brand": "Nike", "price": 159, "rating": 4.8, "sizes": [9, 10, 11], "delivery_days": 2, "in_stock": True},
-    {"name": "Adidas Supernova Rise", "brand": "Adidas", "price": 140, "rating": 4.5, "sizes": [8, 9, 10], "delivery_days": 2, "in_stock": True},
-    {"name": "Nike Winflo 11", "brand": "Nike", "price": 89, "rating": 4.3, "sizes": [8, 9, 10, 11], "delivery_days": 2, "in_stock": True},
+    {"name": "Nike Air Zoom Pegasus 41", "brand": "Nike", "price": 109, "rating": 4.6, "sizes": [8, 9, 10, 11, 12], "delivery_days": 2, "in_stock": True, "color": "black"},
+    {"name": "Nike Revolution 7", "brand": "Nike", "price": 74, "rating": 4.2, "sizes": [9, 10, 11], "delivery_days": 3, "in_stock": True, "color": "white"},
+    {"name": "Adidas Ultraboost Light", "brand": "Adidas", "price": 118, "rating": 4.7, "sizes": [8, 9, 10, 11, 12], "delivery_days": 2, "in_stock": True, "color": "black"},
+    {"name": "Adidas Runfalcon 5", "brand": "Adidas", "price": 65, "rating": 4.0, "sizes": [10, 11, 12], "delivery_days": 3, "in_stock": True, "color": "grey"},
+    {"name": "Nike Vomero 18", "brand": "Nike", "price": 159, "rating": 4.8, "sizes": [9, 10, 11], "delivery_days": 2, "in_stock": True, "color": "blue"},
+    {"name": "Adidas Supernova Rise", "brand": "Adidas", "price": 140, "rating": 4.5, "sizes": [8, 9, 10], "delivery_days": 2, "in_stock": True, "color": "red"},
+    {"name": "Nike Winflo 11", "brand": "Nike", "price": 89, "rating": 4.3, "sizes": [8, 9, 10, 11], "delivery_days": 2, "in_stock": True, "color": "black"},
 ]
 
 NIKE_CATALOG = [
-    {"name": "Nike Air Zoom Pegasus 41", "brand": "Nike", "price": 99, "rating": 4.6, "sizes": [8, 9, 10, 11], "delivery_days": 4, "in_stock": True},
-    {"name": "Nike Revolution 7", "brand": "Nike", "price": 64, "rating": 4.2, "sizes": [9, 10], "delivery_days": 3, "in_stock": True},
-    {"name": "Nike Vomero 18", "brand": "Nike", "price": 149, "rating": 4.8, "sizes": [9, 11], "delivery_days": 5, "in_stock": True},
-    {"name": "Nike Winflo 11", "brand": "Nike", "price": 79, "rating": 4.3, "sizes": [8, 10, 11], "delivery_days": 3, "in_stock": True},
-    {"name": "Nike InfinityRN 4", "brand": "Nike", "price": 112, "rating": 4.5, "sizes": [10, 11, 12], "delivery_days": 4, "in_stock": True},
-    {"name": "Nike Structure 26", "brand": "Nike", "price": 139, "rating": 4.4, "sizes": [9, 10], "delivery_days": 5, "in_stock": False},
+    {"name": "Nike Air Zoom Pegasus 41", "brand": "Nike", "price": 99, "rating": 4.6, "sizes": [8, 9, 10, 11], "delivery_days": 4, "in_stock": True, "color": "black"},
+    {"name": "Nike Revolution 7", "brand": "Nike", "price": 64, "rating": 4.2, "sizes": [9, 10], "delivery_days": 3, "in_stock": True, "color": "white"},
+    {"name": "Nike Vomero 18", "brand": "Nike", "price": 149, "rating": 4.8, "sizes": [9, 11], "delivery_days": 5, "in_stock": True, "color": "blue"},
+    {"name": "Nike Winflo 11", "brand": "Nike", "price": 79, "rating": 4.3, "sizes": [8, 10, 11], "delivery_days": 3, "in_stock": True, "color": "black"},
+    {"name": "Nike InfinityRN 4", "brand": "Nike", "price": 112, "rating": 4.5, "sizes": [10, 11, 12], "delivery_days": 4, "in_stock": True, "color": "green"},
+    {"name": "Nike Structure 26", "brand": "Nike", "price": 139, "rating": 4.4, "sizes": [9, 10], "delivery_days": 5, "in_stock": False, "color": "red"},
 ]
 
 AMAZON_CATALOG = [
-    {"name": "Nike Air Zoom Pegasus 41", "brand": "Nike", "price": 114, "rating": 4.4, "sizes": [8, 9, 10, 11, 12], "delivery_days": 1, "in_stock": True},
-    {"name": "Adidas Ultraboost Light", "brand": "Adidas", "price": 125, "rating": 4.5, "sizes": [8, 9, 10, 11], "delivery_days": 1, "in_stock": True},
-    {"name": "Nike Revolution 7", "brand": "Nike", "price": 69, "rating": 4.0, "sizes": [10, 11], "delivery_days": 1, "in_stock": True},
-    {"name": "Adidas Runfalcon 5", "brand": "Adidas", "price": 59, "rating": 3.9, "sizes": [9, 10, 11, 12], "delivery_days": 1, "in_stock": True},
-    {"name": "Generic RunPro X200", "brand": "Generic", "price": 35, "rating": 3.2, "sizes": [8, 9, 10, 11, 12], "delivery_days": 1, "in_stock": True},
-    {"name": "Nike Winflo 11", "brand": "Nike", "price": 95, "rating": 4.2, "sizes": [9, 10], "delivery_days": 2, "in_stock": True},
-    {"name": "Adidas Supernova Rise", "brand": "Adidas", "price": 132, "rating": 4.4, "sizes": [10, 11], "delivery_days": 1, "in_stock": True},
+    {"name": "Nike Air Zoom Pegasus 41", "brand": "Nike", "price": 114, "rating": 4.4, "sizes": [8, 9, 10, 11, 12], "delivery_days": 1, "in_stock": True, "color": "black"},
+    {"name": "Adidas Ultraboost Light", "brand": "Adidas", "price": 125, "rating": 4.5, "sizes": [8, 9, 10, 11], "delivery_days": 1, "in_stock": True, "color": "white"},
+    {"name": "Nike Revolution 7", "brand": "Nike", "price": 69, "rating": 4.0, "sizes": [10, 11], "delivery_days": 1, "in_stock": True, "color": "grey"},
+    {"name": "Adidas Runfalcon 5", "brand": "Adidas", "price": 59, "rating": 3.9, "sizes": [9, 10, 11, 12], "delivery_days": 1, "in_stock": True, "color": "black"},
+    {"name": "Generic RunPro X200", "brand": "Generic", "price": 35, "rating": 3.2, "sizes": [8, 9, 10, 11, 12], "delivery_days": 1, "in_stock": True, "color": "grey"},
+    {"name": "Nike Winflo 11", "brand": "Nike", "price": 95, "rating": 4.2, "sizes": [9, 10], "delivery_days": 2, "in_stock": True, "color": "black"},
+    {"name": "Adidas Supernova Rise", "brand": "Adidas", "price": 132, "rating": 4.4, "sizes": [10, 11], "delivery_days": 1, "in_stock": True, "color": "blue"},
 ]
 
 STORES = {
@@ -229,7 +229,9 @@ class ShoppingEnvironment:
         Results are cached so a single episode doesn't re-fetch.
         Normalizes to environment.py product format.
         """
-        cache_key = f"{store_name}:{'+'.join(sorted(preferences.get('brands', [])))}"
+        color = preferences.get("color", "")
+        style = preferences.get("style", "")
+        cache_key = f"{store_name}:{'+'.join(sorted(preferences.get('brands', [])))}:{color}:{style}"
         if cache_key in _live_cache:
             return _live_cache[cache_key]
 
@@ -238,13 +240,19 @@ class ShoppingEnvironment:
             size = preferences.get("size", 10)
             budget = preferences.get("budget", 120)
             brands = preferences.get("brands", ["Nike", "Adidas"])
-            raw = scrape_real_products(store_name, size=size, budget=budget, brands=brands)
+            raw = scrape_real_products(store_name, size=size, budget=budget,
+                                      brands=brands, color=color, style=style)
             if not raw:
                 return []
 
             # Normalize: add sizes/delivery/in_stock fields the sim expects
             normalized = []
             for p in raw:
+                # Use color from scraper if available, else detect from product name
+                product_color = p.get("color", "")
+                if not product_color and color:
+                    if color.lower() in p.get("name", "").lower():
+                        product_color = color.lower()
                 normalized.append({
                     "name": p["name"],
                     "brand": p.get("brand", "Unknown"),
@@ -255,6 +263,7 @@ class ShoppingEnvironment:
                     "in_stock": True,
                     "url": p.get("url", ""),
                     "live": True,              # tag so dashboard can show "LIVE" badge
+                    "color": product_color,    # from scraper or detected from name
                 })
             _live_cache[cache_key] = normalized
             return normalized
@@ -291,6 +300,17 @@ class ShoppingEnvironment:
         else:
             score["misses"].append("size")
             self.events.append("wrong_size")
+
+        # Color — check if requested color appears in product name or color field
+        pref_color = preferences.get("color", "").lower()
+        if pref_color:
+            product_color = product.get("color", "").lower()
+            product_name_lower = product.get("name", "").lower()
+            if pref_color in product_color or pref_color in product_name_lower:
+                score["matches"].append("color")
+            else:
+                score["misses"].append("color")
+                self.events.append("wrong_color")
 
         # Delivery
         max_days = preferences.get("max_delivery_days", 99)

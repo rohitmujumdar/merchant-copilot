@@ -352,9 +352,10 @@ def execute_action(action: str, env: ShoppingEnvironment, prefs: dict,
                     "message": "No results found. Try different query or site."}
         summary = []
         for i, p in enumerate(results):
+            color_info = f" | Color: {p['color']}" if p.get('color') else ""
             summary.append(
                 f"[{i}] {p['name']} | ${p['price']} | "
-                f"Rating: {p['rating']} | Size {prefs['size']} available: {prefs['size'] in p['sizes']} | "
+                f"Rating: {p['rating']} | Size {prefs['size']} available: {prefs['size'] in p['sizes']}{color_info} | "
                 f"Delivery: {p['delivery_days']} days | In stock: {p['in_stock']}"
             )
         return {

@@ -26,6 +26,7 @@ REWARD_TABLE = {
     "out_of_stock":          -20,
     "over_budget":           -10,
     "wrong_size":            -12,
+    "wrong_color":           -12,
 
     # Efficiency (steeper penalty so long detours really hurt)
     "per_step_penalty":       -4,

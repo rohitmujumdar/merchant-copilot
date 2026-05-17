@@ -18,12 +18,20 @@ import anthropic
 config = dotenv_values(".env")
 client = anthropic.Anthropic(api_key=config["ANTHROPIC_API_KEY"])
 
-def _build_search_url(site: str, brands: list[str]) -> str:
+def _build_search_url(site: str, brands: list[str], color: str = "", style: str = "") -> str:
     """
-    Build a dynamic search URL based on user's brand preferences.
-    This way if the user wants Yeezy, we search for Yeezy — not hardcoded Nike.
+    Build a dynamic search URL based on user's brand preferences, color, and style.
+    This way if the user wants black Nike running shoes, we search for exactly that.
     """
     brand_query = "+".join(b.lower() for b in brands) if brands else "sneakers"
+    # Add color and style to query for more relevant results
+    extras = []
+    if color:
+        extras.append(color.lower())
+    if style:
+        extras.append(style.lower())
+    extras_query = "+".join(extras)
+    full_query = f"{brand_query}+{extras_query}+sneakers+men" if extras_query else f"{brand_query}+sneakers+men"
 
     # StockX blocks search pages with CAPTCHA — use category pages instead
     # GOAT search works well
@@ -34,12 +42,12 @@ def _build_search_url(site: str, brands: list[str]) -> str:
     }
     stockx_brand = stockx_brand_map.get(first_brand, first_brand)
     SITE_URL_TEMPLATES = {
-        "zappos":  f"https://www.zappos.com/search?term={brand_query}+sneakers+men",
-        "6pm":     f"https://www.6pm.com/search?term={brand_query}+sneakers+men",
+        "zappos":  f"https://www.zappos.com/search?term={full_query}",
+        "6pm":     f"https://www.6pm.com/search?term={full_query}",
         "stockx":  f"https://stockx.com/sneakers/{stockx_brand}",
-        "goat":    f"https://www.goat.com/search?query={brand_query}",
+        "goat":    f"https://www.goat.com/search?query={full_query}",
         "nike":    "https://www.nike.com/w/mens-running-shoes-37v7jznik1zy7ok",
-        "amazon":  f"https://www.amazon.com/s?k={brand_query}+sneakers+men",
+        "amazon":  f"https://www.amazon.com/s?k={full_query}",
     }
     return SITE_URL_TEMPLATES.get(site, SITE_URL_TEMPLATES["zappos"])
 
@@ -54,14 +62,24 @@ def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
     # Match ANY brand name (1-3 words before the dash) — not hardcoded to Nike/Adidas
     pattern = re.compile(
         r'\[([A-Za-z][A-Za-z &]+?) - ([^.]+)\.'                                    # brand - name (flexible)
+        r'\s*Color ([^.]+)\.'                                                        # color
+        r'[^\]]*?(?:On sale for )?\$([\d,]+\.?\d*)\.'                               # price (sale or regular)
+        r'.*?([\d.]+) out of 5 stars\]'                                              # rating
+        r'\((https://[^\)]+)\)',                                                      # url
+        re.IGNORECASE
+    )
+    # Fallback pattern without color field
+    pattern_no_color = re.compile(
+        r'\[([A-Za-z][A-Za-z &]+?) - ([^.]+)\.'                                    # brand - name (flexible)
         r'[^\]]*?(?:On sale for )?\$([\d,]+\.?\d*)\.'                               # price (sale or regular)
         r'.*?([\d.]+) out of 5 stars\]'                                              # rating
         r'\((https://[^\)]+)\)',                                                      # url
         re.IGNORECASE
     )
     seen = set()
+    # Try color-aware pattern first
     for m in pattern.finditer(text):
-        brand, name, price_str, rating, url = m.groups()
+        brand, name, color, price_str, rating, url = m.groups()
         price = float(price_str.replace(",", ""))
         key = name.strip()
         if key in seen:
@@ -73,9 +91,30 @@ def _parse_zappos_markdown(text: str, site: str) -> list[dict]:
             "rating": float(rating),
             "brand": brand,
             "url": url,
+            "color": color.strip().lower(),
         })
         if len(products) >= 6:
             break
+
+    # Fallback: if color pattern didn't match, try without color
+    if not products:
+        for m in pattern_no_color.finditer(text):
+            brand, name, price_str, rating, url = m.groups()
+            price = float(price_str.replace(",", ""))
+            key = name.strip()
+            if key in seen:
+                continue
+            seen.add(key)
+            products.append({
+                "name": f"{brand} {name.strip()}",
+                "price": price,
+                "rating": float(rating),
+                "brand": brand,
+                "url": url,
+                "color": "",
+            })
+            if len(products) >= 6:
+                break
     return products
 
 
@@ -185,7 +224,8 @@ Return ONLY this format (no markdown, no explanation):
 
 
 def scrape_real_products(site: str, size: int = 10, budget: int = 120,
-                         brands: list[str] = None) -> list[dict]:
+                         brands: list[str] = None, color: str = "",
+                         style: str = "") -> list[dict]:
     """
     Scrape real products from a retail site.
     Returns list of product dicts in environment.py format.
@@ -196,10 +236,12 @@ def scrape_real_products(site: str, size: int = 10, budget: int = 120,
         size: user's shoe size
         budget: max price
         brands: user's preferred brands — used to build dynamic search URL
+        color: preferred color — included in search query
+        style: preferred style (running, casual, etc.) — included in search query
     """
     if brands is None:
         brands = ["Nike", "Adidas"]
-    url = _build_search_url(site, brands)
+    url = _build_search_url(site, brands, color=color, style=style)
     jina_url = f"https://r.jina.ai/{url}"
 
     try:
@@ -253,6 +295,7 @@ def scrape_real_products(site: str, size: int = 10, budget: int = 120,
                 "delivery_days": 2,
                 "in_stock": True,
                 "url": p.get("url", ""),
+                "color": p.get("color", ""),  # from parser (Zappos has it)
             })
         except (KeyError, ValueError):
             continue
