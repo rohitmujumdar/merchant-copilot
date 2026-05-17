@@ -382,11 +382,14 @@ Include optional fields only if the user mentioned them. Omit them if not mentio
                     if prefs.get("excluded_brands"):
                         user_prefs["excluded_brands"] = prefs["excluded_brands"]
 
-                    cg["user"]["preferences"] = user_prefs
-                    cg["user"]["trust_rules"] = {
-                        "max_autonomous_spend": prefs.get("max_autonomous_spend", prefs["budget"] + 30),
-                        "approved_categories": ["footwear"],
-                        "require_approval_first_n_runs": 3,
+                    # Reset user section cleanly for new query (no stale feedback/query from previous runs)
+                    cg["user"] = {
+                        "preferences": user_prefs,
+                        "trust_rules": {
+                            "max_autonomous_spend": prefs.get("max_autonomous_spend", prefs["budget"] + 30),
+                            "approved_categories": ["footwear"],
+                            "require_approval_first_n_runs": 3,
+                        },
                     }
                     # Store original query text so shopping agent can use exact terms
                     user_msgs = [m["content"] for m in st.session_state.chat_history if m["role"] == "user"]
@@ -424,8 +427,11 @@ Include optional fields only if the user mentioned them. Omit them if not mentio
                     user_prefs["specific_product"] = specific_product
                 if custom_instructions:
                     user_prefs["custom_instructions"] = custom_instructions
-                cg["user"]["preferences"] = user_prefs
-                cg["user"]["trust_rules"] = {"max_autonomous_spend": spend_cap, "approved_categories": ["footwear"], "require_approval_first_n_runs": 3}
+                # Reset user section cleanly for new query (no stale feedback/query from previous runs)
+                cg["user"] = {
+                    "preferences": user_prefs,
+                    "trust_rules": {"max_autonomous_spend": spend_cap, "approved_categories": ["footwear"], "require_approval_first_n_runs": 3},
+                }
                 # Store original query for shopping agent search terms
                 if search_query:
                     cg["user"]["original_query"] = search_query
