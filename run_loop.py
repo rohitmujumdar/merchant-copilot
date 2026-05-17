@@ -31,7 +31,7 @@ from payment_agent import execute_payment
 config = dotenv_values(".env")
 client = anthropic.Anthropic(api_key=config["ANTHROPIC_API_KEY"])
 
-TOTAL_RUNS = 5
+TOTAL_RUNS = 3
 BANDIT_STATE_PATH = "bandit_state.json"
 
 

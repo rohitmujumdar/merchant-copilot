@@ -144,7 +144,7 @@ Start shopping."""
     fails = 0
     purchased_product = None
     outcome = "not_found"
-    max_steps = 12  # safety limit
+    max_steps = 8  # safety limit (lower = faster demo)
 
     print(f"\n{'='*60}")
     print(f"RUN {run_number} | Site: {strategy['site']} | Query: {strategy['query_style']}")
@@ -155,7 +155,7 @@ Start shopping."""
         # Call Claude — stop before it hallucinates its own Observation
         response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=600,
+            max_tokens=300,
             stop_sequences=["Observation:", "observation:"],
             system=build_system_prompt(context_graph, history_summary),
             messages=messages,
