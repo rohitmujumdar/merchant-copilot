@@ -208,6 +208,19 @@ if "preferences_extracted" not in st.session_state:
     st.session_state.preferences_extracted = False
 if "run_progress" not in st.session_state:
     st.session_state.run_progress = []
+
+# Auto-load results on startup for demo
+if "results" not in st.session_state and RUN_RESULTS_PATH.exists():
+    try:
+        raw = json.loads(RUN_RESULTS_PATH.read_text())
+        if isinstance(raw, dict) and "runs" in raw:
+            st.session_state.results = raw["runs"]
+            if raw.get("best_candidate"):
+                st.session_state.best_candidate = raw["best_candidate"]
+        elif isinstance(raw, list):
+            st.session_state.results = raw
+    except Exception:
+        pass
 if "awaiting_approval" not in st.session_state:
     st.session_state.awaiting_approval = False
 if "best_candidate" not in st.session_state:

@@ -1,0 +1,2159 @@
+{
+  "bandits": {
+    "site": {
+      "name": "site",
+      "arms": [
+        {
+          "name": "zappos",
+          "alpha": 3.2086956521739127,
+          "beta": 5.791304347826087,
+          "times_chosen": 7,
+          "total_reward": 168.0
+        },
+        {
+          "name": "6pm",
+          "alpha": 3.921739130434782,
+          "beta": 8.078260869565216,
+          "times_chosen": 10,
+          "total_reward": 173.0
+        },
+        {
+          "name": "stockx",
+          "alpha": 6.3304347826086955,
+          "beta": 6.669565217391304,
+          "times_chosen": 11,
+          "total_reward": 514.0
+        },
+        {
+          "name": "goat",
+          "alpha": 2.9391304347826086,
+          "beta": 7.060869565217391,
+          "times_chosen": 8,
+          "total_reward": 113.0
+        },
+        {
+          "name": "nike",
+          "alpha": 2.6869565217391305,
+          "beta": 6.3130434782608695,
+          "times_chosen": 7,
+          "total_reward": 55.0
+        },
+        {
+          "name": "amazon",
+          "alpha": 1.2608695652173914,
+          "beta": 4.739130434782608,
+          "times_chosen": 4,
+          "total_reward": -97.0
+        }
+      ]
+    },
+    "query_style": {
+      "name": "query_style",
+      "arms": [
+        {
+          "name": "broad",
+          "alpha": 15.34782608695652,
+          "beta": 20.65217391304348,
+          "times_chosen": 34,
+          "total_reward": 1444.0
+        },
+        {
+          "name": "moderate",
+          "alpha": 1.0,
+          "beta": 7.0,
+          "times_chosen": 6,
+          "total_reward": -320.0
+        },
+        {
+          "name": "specific",
+          "alpha": 1.0,
+          "beta": 8.0,
+          "times_chosen": 7,
+          "total_reward": -198.0
+        }
+      ]
+    },
+    "filter_strategy": {
+      "name": "filter_strategy",
+      "arms": [
+        {
+          "name": "price_first",
+          "alpha": 2.1130434782608694,
+          "beta": 5.88695652173913,
+          "times_chosen": 6,
+          "total_reward": 8.0
+        },
+        {
+          "name": "brand_first",
+          "alpha": 2.5130434782608697,
+          "beta": 6.48695652173913,
+          "times_chosen": 7,
+          "total_reward": 39.0
+        },
+        {
+          "name": "rating_first",
+          "alpha": 12.721739130434779,
+          "beta": 16.278260869565223,
+          "times_chosen": 27,
+          "total_reward": 1114.0
+        },
+        {
+          "name": "size_first",
+          "alpha": 1.0,
+          "beta": 8.0,
+          "times_chosen": 7,
+          "total_reward": -235.0
+        }
+      ]
+    },
+    "abandon_threshold": {
+      "name": "abandon_threshold",
+      "arms": [
+        {
+          "name": "after_1_fail",
+          "alpha": 15.295652173913043,
+          "beta": 21.70434782608696,
+          "times_chosen": 35,
+          "total_reward": 1284.0
+        },
+        {
+          "name": "after_2_fails",
+          "alpha": 1.0521739130434782,
+          "beta": 6.947826086956522,
+          "times_chosen": 6,
+          "total_reward": -181.0
+        },
+        {
+          "name": "after_3_fails",
+          "alpha": 1.0,
+          "beta": 7.0,
+          "times_chosen": 6,
+          "total_reward": -177.0
+        }
+      ]
+    }
+  },
+  "run_history": [
+    {
+      "run": 1,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "moderate",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -59,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "step_penalty": -44
+      },
+      "steps": 11,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -55,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "step_penalty": -40
+      },
+      "steps": 10,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "amazon",
+        "query_style": "moderate",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -47,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "step_penalty": -32
+      },
+      "steps": 8,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 4,
+      "strategy": {
+        "site": "goat",
+        "query_style": "specific",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -12,
+      "reward_breakdown": {
+        "step_penalty": -12
+      },
+      "steps": 3,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 5,
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -36,
+      "reward_breakdown": {
+        "step_penalty": -36
+      },
+      "steps": 9,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 6,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -36,
+      "reward_breakdown": {
+        "step_penalty": -36
+      },
+      "steps": 9,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 7,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -40,
+      "reward_breakdown": {
+        "step_penalty": -40
+      },
+      "steps": 10,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 8,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -36,
+      "reward_breakdown": {
+        "step_penalty": -36
+      },
+      "steps": 9,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 9,
+      "strategy": {
+        "site": "goat",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -55,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "step_penalty": -40
+      },
+      "steps": 10,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 10,
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -36,
+      "reward_breakdown": {
+        "step_penalty": -36
+      },
+      "steps": 9,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "amazon",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -24,
+      "reward_breakdown": {
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -8,
+      "reward_breakdown": {
+        "step_penalty": -8
+      },
+      "steps": 2,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -60,
+      "reward_breakdown": {
+        "out_of_stock": -20,
+        "step_penalty": -40
+      },
+      "steps": 10,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 4,
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -8,
+      "reward_breakdown": {
+        "step_penalty": -8
+      },
+      "steps": 2,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 5,
+      "strategy": {
+        "site": "amazon",
+        "query_style": "specific",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -56,
+      "reward_breakdown": {
+        "out_of_stock": -20,
+        "step_penalty": -36
+      },
+      "steps": 9,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.167,
+          "6pm": 0.167,
+          "stockx": 0.167,
+          "goat": 0.167,
+          "nike": 0.167,
+          "amazon": 0.167
+        },
+        "query_style": {
+          "broad": 0.333,
+          "moderate": 0.333,
+          "specific": 0.333
+        },
+        "filter_strategy": {
+          "price_first": 0.25,
+          "brand_first": 0.25,
+          "rating_first": 0.25,
+          "size_first": 0.25
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.333,
+          "after_2_fails": 0.333,
+          "after_3_fails": 0.333
+        }
+      }
+    },
+    {
+      "run": 6,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 6,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -44
+      },
+      "steps": 11,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.165,
+          "6pm": 0.174,
+          "stockx": 0.165,
+          "goat": 0.165,
+          "nike": 0.165,
+          "amazon": 0.165
+        },
+        "query_style": {
+          "broad": 0.345,
+          "moderate": 0.328,
+          "specific": 0.328
+        },
+        "filter_strategy": {
+          "price_first": 0.247,
+          "brand_first": 0.26,
+          "rating_first": 0.247,
+          "size_first": 0.247
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.328,
+          "after_2_fails": 0.345,
+          "after_3_fails": 0.328
+        }
+      }
+    },
+    {
+      "run": 7,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "specific",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -14,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "out_of_stock": -20,
+        "step_penalty": -44
+      },
+      "steps": 11,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.165,
+          "6pm": 0.174,
+          "stockx": 0.165,
+          "goat": 0.165,
+          "nike": 0.165,
+          "amazon": 0.165
+        },
+        "query_style": {
+          "broad": 0.345,
+          "moderate": 0.328,
+          "specific": 0.328
+        },
+        "filter_strategy": {
+          "price_first": 0.247,
+          "brand_first": 0.26,
+          "rating_first": 0.247,
+          "size_first": 0.247
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.328,
+          "after_2_fails": 0.345,
+          "after_3_fails": 0.328
+        }
+      }
+    },
+    {
+      "run": 8,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.145,
+          "6pm": 0.277,
+          "stockx": 0.145,
+          "goat": 0.145,
+          "nike": 0.145,
+          "amazon": 0.145
+        },
+        "query_style": {
+          "broad": 0.489,
+          "moderate": 0.256,
+          "specific": 0.256
+        },
+        "filter_strategy": {
+          "price_first": 0.204,
+          "brand_first": 0.214,
+          "rating_first": 0.379,
+          "size_first": 0.204
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.476,
+          "after_2_fails": 0.269,
+          "after_3_fails": 0.256
+        }
+      }
+    },
+    {
+      "run": 9,
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -24,
+        "efficiency_bonus": 8
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.131,
+          "6pm": 0.25,
+          "stockx": 0.131,
+          "goat": 0.131,
+          "nike": 0.226,
+          "amazon": 0.131
+        },
+        "query_style": {
+          "broad": 0.569,
+          "moderate": 0.215,
+          "specific": 0.215
+        },
+        "filter_strategy": {
+          "price_first": 0.177,
+          "brand_first": 0.316,
+          "rating_first": 0.33,
+          "size_first": 0.177
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.558,
+          "after_2_fails": 0.227,
+          "after_3_fails": 0.215
+        }
+      }
+    },
+    {
+      "run": 10,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -24,
+        "efficiency_bonus": 8
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.119,
+          "6pm": 0.228,
+          "stockx": 0.207,
+          "goat": 0.119,
+          "nike": 0.207,
+          "amazon": 0.119
+        },
+        "query_style": {
+          "broad": 0.628,
+          "moderate": 0.186,
+          "specific": 0.186
+        },
+        "filter_strategy": {
+          "price_first": 0.157,
+          "brand_first": 0.28,
+          "rating_first": 0.407,
+          "size_first": 0.157
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.618,
+          "after_2_fails": 0.196,
+          "after_3_fails": 0.186
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -24,
+        "efficiency_bonus": 8
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.11,
+          "6pm": 0.21,
+          "stockx": 0.19,
+          "goat": 0.11,
+          "nike": 0.27,
+          "amazon": 0.11
+        },
+        "query_style": {
+          "broad": 0.672,
+          "moderate": 0.164,
+          "specific": 0.164
+        },
+        "filter_strategy": {
+          "price_first": 0.141,
+          "brand_first": 0.354,
+          "rating_first": 0.365,
+          "size_first": 0.141
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.664,
+          "after_2_fails": 0.172,
+          "after_3_fails": 0.164
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.1,
+          "6pm": 0.192,
+          "stockx": 0.174,
+          "goat": 0.187,
+          "nike": 0.247,
+          "amazon": 0.1
+        },
+        "query_style": {
+          "broad": 0.713,
+          "moderate": 0.144,
+          "specific": 0.144
+        },
+        "filter_strategy": {
+          "price_first": 0.234,
+          "brand_first": 0.316,
+          "rating_first": 0.325,
+          "size_first": 0.126
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.705,
+          "after_2_fails": 0.151,
+          "after_3_fails": 0.144
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.092,
+          "6pm": 0.177,
+          "stockx": 0.239,
+          "goat": 0.172,
+          "nike": 0.227,
+          "amazon": 0.092
+        },
+        "query_style": {
+          "broad": 0.744,
+          "moderate": 0.128,
+          "specific": 0.128
+        },
+        "filter_strategy": {
+          "price_first": 0.211,
+          "brand_first": 0.285,
+          "rating_first": 0.391,
+          "size_first": 0.113
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.738,
+          "after_2_fails": 0.134,
+          "after_3_fails": 0.128
+        }
+      }
+    },
+    {
+      "run": 4,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.086,
+          "6pm": 0.237,
+          "stockx": 0.222,
+          "goat": 0.159,
+          "nike": 0.211,
+          "amazon": 0.086
+        },
+        "query_style": {
+          "broad": 0.77,
+          "moderate": 0.115,
+          "specific": 0.115
+        },
+        "filter_strategy": {
+          "price_first": 0.192,
+          "brand_first": 0.259,
+          "rating_first": 0.445,
+          "size_first": 0.103
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.764,
+          "after_2_fails": 0.121,
+          "after_3_fails": 0.115
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.08,
+          "6pm": 0.221,
+          "stockx": 0.275,
+          "goat": 0.148,
+          "nike": 0.196,
+          "amazon": 0.08
+        },
+        "query_style": {
+          "broad": 0.791,
+          "moderate": 0.105,
+          "specific": 0.105
+        },
+        "filter_strategy": {
+          "price_first": 0.176,
+          "brand_first": 0.238,
+          "rating_first": 0.491,
+          "size_first": 0.095
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.785,
+          "after_2_fails": 0.11,
+          "after_3_fails": 0.105
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.075,
+          "6pm": 0.207,
+          "stockx": 0.322,
+          "goat": 0.139,
+          "nike": 0.184,
+          "amazon": 0.075
+        },
+        "query_style": {
+          "broad": 0.808,
+          "moderate": 0.096,
+          "specific": 0.096
+        },
+        "filter_strategy": {
+          "price_first": 0.163,
+          "brand_first": 0.22,
+          "rating_first": 0.529,
+          "size_first": 0.088
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.803,
+          "after_2_fails": 0.101,
+          "after_3_fails": 0.096
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 72,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -28
+      },
+      "steps": 7,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.071,
+          "6pm": 0.198,
+          "stockx": 0.307,
+          "goat": 0.177,
+          "nike": 0.175,
+          "amazon": 0.071
+        },
+        "query_style": {
+          "broad": 0.819,
+          "moderate": 0.091,
+          "specific": 0.091
+        },
+        "filter_strategy": {
+          "price_first": 0.155,
+          "brand_first": 0.209,
+          "rating_first": 0.553,
+          "size_first": 0.083
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.814,
+          "after_2_fails": 0.095,
+          "after_3_fails": 0.091
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.07,
+          "6pm": 0.195,
+          "stockx": 0.302,
+          "goat": 0.174,
+          "nike": 0.188,
+          "amazon": 0.07
+        },
+        "query_style": {
+          "broad": 0.822,
+          "moderate": 0.089,
+          "specific": 0.089
+        },
+        "filter_strategy": {
+          "price_first": 0.17,
+          "brand_first": 0.205,
+          "rating_first": 0.543,
+          "size_first": 0.082
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.818,
+          "after_2_fails": 0.093,
+          "after_3_fails": 0.089
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.066,
+          "6pm": 0.24,
+          "stockx": 0.285,
+          "goat": 0.164,
+          "nike": 0.178,
+          "amazon": 0.066
+        },
+        "query_style": {
+          "broad": 0.835,
+          "moderate": 0.082,
+          "specific": 0.082
+        },
+        "filter_strategy": {
+          "price_first": 0.159,
+          "brand_first": 0.192,
+          "rating_first": 0.573,
+          "size_first": 0.076
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.831,
+          "after_2_fails": 0.087,
+          "after_3_fails": 0.082
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 3,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "fast_delivery": 10,
+        "step_penalty": -32
+      },
+      "steps": 8,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.066,
+          "6pm": 0.242,
+          "stockx": 0.285,
+          "goat": 0.164,
+          "nike": 0.177,
+          "amazon": 0.066
+        },
+        "query_style": {
+          "broad": 0.835,
+          "moderate": 0.082,
+          "specific": 0.082
+        },
+        "filter_strategy": {
+          "price_first": 0.161,
+          "brand_first": 0.191,
+          "rating_first": 0.572,
+          "size_first": 0.076
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.831,
+          "after_2_fails": 0.087,
+          "after_3_fails": 0.082
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.116,
+          "6pm": 0.229,
+          "stockx": 0.269,
+          "goat": 0.155,
+          "nike": 0.168,
+          "amazon": 0.062
+        },
+        "query_style": {
+          "broad": 0.846,
+          "moderate": 0.077,
+          "specific": 0.077
+        },
+        "filter_strategy": {
+          "price_first": 0.151,
+          "brand_first": 0.179,
+          "rating_first": 0.598,
+          "size_first": 0.071
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.842,
+          "after_2_fails": 0.081,
+          "after_3_fails": 0.077
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -24,
+        "efficiency_bonus": 8
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.111,
+          "6pm": 0.219,
+          "stockx": 0.301,
+          "goat": 0.149,
+          "nike": 0.161,
+          "amazon": 0.06
+        },
+        "query_style": {
+          "broad": 0.854,
+          "moderate": 0.073,
+          "specific": 0.073
+        },
+        "filter_strategy": {
+          "price_first": 0.143,
+          "brand_first": 0.171,
+          "rating_first": 0.618,
+          "size_first": 0.068
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.851,
+          "after_2_fails": 0.077,
+          "after_3_fails": 0.073
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -16,
+        "efficiency_bonus": 15
+      },
+      "steps": 4,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.155,
+          "6pm": 0.208,
+          "stockx": 0.287,
+          "goat": 0.141,
+          "nike": 0.153,
+          "amazon": 0.057
+        },
+        "query_style": {
+          "broad": 0.863,
+          "moderate": 0.068,
+          "specific": 0.068
+        },
+        "filter_strategy": {
+          "price_first": 0.135,
+          "brand_first": 0.161,
+          "rating_first": 0.639,
+          "size_first": 0.064
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.859,
+          "after_2_fails": 0.072,
+          "after_3_fails": 0.068
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 11,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "item_found_full_match": 25,
+        "under_budget": 15,
+        "fast_delivery": 10,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.154,
+          "6pm": 0.207,
+          "stockx": 0.29,
+          "goat": 0.141,
+          "nike": 0.152,
+          "amazon": 0.057
+        },
+        "query_style": {
+          "broad": 0.864,
+          "moderate": 0.068,
+          "specific": 0.068
+        },
+        "filter_strategy": {
+          "price_first": 0.135,
+          "brand_first": 0.16,
+          "rating_first": 0.642,
+          "size_first": 0.064
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.86,
+          "after_2_fails": 0.072,
+          "after_3_fails": 0.068
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.152,
+          "6pm": 0.204,
+          "stockx": 0.299,
+          "goat": 0.139,
+          "nike": 0.15,
+          "amazon": 0.056
+        },
+        "query_style": {
+          "broad": 0.866,
+          "moderate": 0.067,
+          "specific": 0.067
+        },
+        "filter_strategy": {
+          "price_first": 0.133,
+          "brand_first": 0.158,
+          "rating_first": 0.647,
+          "size_first": 0.063
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.862,
+          "after_2_fails": 0.071,
+          "after_3_fails": 0.067
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 73,
+      "reward_breakdown": {
+        "fast_delivery": 10,
+        "item_found_full_match": 25,
+        "captcha_blocked": -15,
+        "under_budget": 15,
+        "checkout_reached": 10,
+        "purchase_completed": 40,
+        "step_penalty": -20,
+        "efficiency_bonus": 8
+      },
+      "steps": 5,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.147,
+          "6pm": 0.197,
+          "stockx": 0.323,
+          "goat": 0.134,
+          "nike": 0.145,
+          "amazon": 0.054
+        },
+        "query_style": {
+          "broad": 0.871,
+          "moderate": 0.064,
+          "specific": 0.064
+        },
+        "filter_strategy": {
+          "price_first": 0.128,
+          "brand_first": 0.152,
+          "rating_first": 0.66,
+          "size_first": 0.06
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.868,
+          "after_2_fails": 0.068,
+          "after_3_fails": 0.064
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "amazon",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 30,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -20
+      },
+      "steps": 5,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.145,
+          "6pm": 0.195,
+          "stockx": 0.319,
+          "goat": 0.132,
+          "nike": 0.143,
+          "amazon": 0.067
+        },
+        "query_style": {
+          "broad": 0.874,
+          "moderate": 0.063,
+          "specific": 0.063
+        },
+        "filter_strategy": {
+          "price_first": 0.126,
+          "brand_first": 0.149,
+          "rating_first": 0.665,
+          "size_first": 0.059
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.87,
+          "after_2_fails": 0.067,
+          "after_3_fails": 0.063
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 30,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -20
+      },
+      "steps": 5,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.143,
+          "6pm": 0.206,
+          "stockx": 0.314,
+          "goat": 0.13,
+          "nike": 0.141,
+          "amazon": 0.066
+        },
+        "query_style": {
+          "broad": 0.876,
+          "moderate": 0.062,
+          "specific": 0.062
+        },
+        "filter_strategy": {
+          "price_first": 0.124,
+          "brand_first": 0.147,
+          "rating_first": 0.671,
+          "size_first": 0.059
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.872,
+          "after_2_fails": 0.065,
+          "after_3_fails": 0.062
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.153,
+          "6pm": 0.203,
+          "stockx": 0.311,
+          "goat": 0.129,
+          "nike": 0.139,
+          "amazon": 0.065
+        },
+        "query_style": {
+          "broad": 0.877,
+          "moderate": 0.061,
+          "specific": 0.061
+        },
+        "filter_strategy": {
+          "price_first": 0.122,
+          "brand_first": 0.145,
+          "rating_first": 0.675,
+          "size_first": 0.058
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.874,
+          "after_2_fails": 0.065,
+          "after_3_fails": 0.061
+        }
+      }
+    },
+    {
+      "run": 4,
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.151,
+          "6pm": 0.201,
+          "stockx": 0.307,
+          "goat": 0.139,
+          "nike": 0.138,
+          "amazon": 0.065
+        },
+        "query_style": {
+          "broad": 0.879,
+          "moderate": 0.06,
+          "specific": 0.06
+        },
+        "filter_strategy": {
+          "price_first": 0.121,
+          "brand_first": 0.143,
+          "rating_first": 0.679,
+          "size_first": 0.057
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.876,
+          "after_2_fails": 0.064,
+          "after_3_fails": 0.06
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.149,
+          "6pm": 0.199,
+          "stockx": 0.304,
+          "goat": 0.149,
+          "nike": 0.136,
+          "amazon": 0.064
+        },
+        "query_style": {
+          "broad": 0.881,
+          "moderate": 0.06,
+          "specific": 0.06
+        },
+        "filter_strategy": {
+          "price_first": 0.119,
+          "brand_first": 0.142,
+          "rating_first": 0.683,
+          "size_first": 0.056
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.878,
+          "after_2_fails": 0.063,
+          "after_3_fails": 0.06
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 38,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -12
+      },
+      "steps": 3,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.147,
+          "6pm": 0.195,
+          "stockx": 0.315,
+          "goat": 0.146,
+          "nike": 0.134,
+          "amazon": 0.063
+        },
+        "query_style": {
+          "broad": 0.883,
+          "moderate": 0.059,
+          "specific": 0.059
+        },
+        "filter_strategy": {
+          "price_first": 0.117,
+          "brand_first": 0.139,
+          "rating_first": 0.689,
+          "size_first": 0.055
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.88,
+          "after_2_fails": 0.062,
+          "after_3_fails": 0.059
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 30,
+      "reward_breakdown": {
+        "under_budget": 15,
+        "item_found_full_match": 25,
+        "fast_delivery": 10,
+        "step_penalty": -20
+      },
+      "steps": 5,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.158,
+          "6pm": 0.193,
+          "stockx": 0.311,
+          "goat": 0.144,
+          "nike": 0.132,
+          "amazon": 0.062
+        },
+        "query_style": {
+          "broad": 0.885,
+          "moderate": 0.058,
+          "specific": 0.058
+        },
+        "filter_strategy": {
+          "price_first": 0.115,
+          "brand_first": 0.137,
+          "rating_first": 0.693,
+          "size_first": 0.055
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.882,
+          "after_2_fails": 0.061,
+          "after_3_fails": 0.058
+        }
+      }
+    },
+    {
+      "run": 1,
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -35,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "step_penalty": -20
+      },
+      "steps": 5,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.158,
+          "6pm": 0.193,
+          "stockx": 0.311,
+          "goat": 0.144,
+          "nike": 0.132,
+          "amazon": 0.062
+        },
+        "query_style": {
+          "broad": 0.885,
+          "moderate": 0.058,
+          "specific": 0.058
+        },
+        "filter_strategy": {
+          "price_first": 0.115,
+          "brand_first": 0.137,
+          "rating_first": 0.693,
+          "size_first": 0.055
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.882,
+          "after_2_fails": 0.061,
+          "after_3_fails": 0.058
+        }
+      }
+    },
+    {
+      "run": 2,
+      "strategy": {
+        "site": "nike",
+        "query_style": "moderate",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -59,
+      "reward_breakdown": {
+        "captcha_blocked": -15,
+        "out_of_stock": -20,
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.158,
+          "6pm": 0.193,
+          "stockx": 0.311,
+          "goat": 0.144,
+          "nike": 0.132,
+          "amazon": 0.062
+        },
+        "query_style": {
+          "broad": 0.885,
+          "moderate": 0.058,
+          "specific": 0.058
+        },
+        "filter_strategy": {
+          "price_first": 0.115,
+          "brand_first": 0.137,
+          "rating_first": 0.693,
+          "size_first": 0.055
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.882,
+          "after_2_fails": 0.061,
+          "after_3_fails": 0.058
+        }
+      }
+    },
+    {
+      "run": 3,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -24,
+      "reward_breakdown": {
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.158,
+          "6pm": 0.193,
+          "stockx": 0.311,
+          "goat": 0.144,
+          "nike": 0.132,
+          "amazon": 0.062
+        },
+        "query_style": {
+          "broad": 0.885,
+          "moderate": 0.058,
+          "specific": 0.058
+        },
+        "filter_strategy": {
+          "price_first": 0.115,
+          "brand_first": 0.137,
+          "rating_first": 0.693,
+          "size_first": 0.055
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.882,
+          "after_2_fails": 0.061,
+          "after_3_fails": 0.058
+        }
+      }
+    },
+    {
+      "run": 4,
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -24,
+      "reward_breakdown": {
+        "step_penalty": -24
+      },
+      "steps": 6,
+      "bandit_weights": {
+        "site": {
+          "zappos": 0.158,
+          "6pm": 0.193,
+          "stockx": 0.311,
+          "goat": 0.144,
+          "nike": 0.132,
+          "amazon": 0.062
+        },
+        "query_style": {
+          "broad": 0.885,
+          "moderate": 0.058,
+          "specific": 0.058
+        },
+        "filter_strategy": {
+          "price_first": 0.115,
+          "brand_first": 0.137,
+          "rating_first": 0.693,
+          "size_first": 0.055
+        },
+        "abandon_threshold": {
+          "after_1_fail": 0.882,
+          "after_2_fails": 0.061,
+          "after_3_fails": 0.058
+        }
+      }
+    }
+  ]
+}

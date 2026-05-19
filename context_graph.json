@@ -2,290 +2,1091 @@
   "user": {
     "preferences": {
       "brands": [
-        "Nike",
-        "Adidas"
+        "Hoka"
       ],
-      "size": 10,
-      "budget": 120,
-      "max_delivery_days": 2,
-      "style": "running"
+      "size": 9,
+      "budget": 300,
+      "max_delivery_days": 10,
+      "style": "running",
+      "color": "black"
     },
     "trust_rules": {
-      "max_autonomous_spend": 150,
+      "max_autonomous_spend": 350,
       "approved_categories": [
         "footwear"
       ],
       "require_approval_first_n_runs": 3
-    }
+    },
+    "original_query": "I want to buy hoka shoes in black for running, in size 9. the budget is $300 | I need them in 10 days and you can spend$50 extra without checking in with me"
   },
   "history": [
     {
       "run": 1,
-      "timestamp": "2026-05-16T21:30:17.257101",
+      "timestamp": "2026-05-17T00:13:52.041608",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "moderate",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -59,
+      "outcome": "not_found"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T00:14:26.138114",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -55,
+      "outcome": "not_found"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T00:14:57.829112",
+      "strategy": {
+        "site": "amazon",
+        "query_style": "moderate",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -47,
+      "outcome": "not_found"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-17T00:15:21.604502",
+      "strategy": {
+        "site": "goat",
+        "query_style": "specific",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -12,
+      "outcome": "not_found"
+    },
+    {
+      "run": 5,
+      "timestamp": "2026-05-17T00:16:05.091840",
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -36,
+      "outcome": "not_found"
+    },
+    {
+      "run": 6,
+      "timestamp": "2026-05-17T00:16:39.474377",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -36,
+      "outcome": "not_found"
+    },
+    {
+      "run": 7,
+      "timestamp": "2026-05-17T00:17:18.670303",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -40,
+      "outcome": "not_found"
+    },
+    {
+      "run": 8,
+      "timestamp": "2026-05-17T00:18:11.590282",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -36,
+      "outcome": "not_found"
+    },
+    {
+      "run": 9,
+      "timestamp": "2026-05-17T00:18:59.800602",
+      "strategy": {
+        "site": "goat",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -55,
+      "outcome": "not_found"
+    },
+    {
+      "run": 10,
+      "timestamp": "2026-05-17T00:20:18.625010",
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -36,
+      "outcome": "not_found"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T00:25:55.727751",
+      "strategy": {
+        "site": "amazon",
+        "query_style": "specific",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 2,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T00:26:44.736118",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "moderate",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 2,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T00:26:59.826445",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -12,
+      "outcome": "not_found"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-17T00:27:25.017589",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "specific",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 34,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 5,
+      "timestamp": "2026-05-17T00:28:02.802755",
+      "strategy": {
+        "site": "goat",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": 88,
+      "outcome": "purchased"
+    },
+    {
+      "run": 6,
+      "timestamp": "2026-05-17T00:28:40.891703",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": 18,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 7,
+      "timestamp": "2026-05-17T00:28:59.629985",
+      "strategy": {
+        "site": "goat",
+        "query_style": "moderate",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": 34,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 8,
+      "timestamp": "2026-05-17T00:29:43.910528",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 30,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 9,
+      "timestamp": "2026-05-17T00:30:12.402667",
+      "strategy": {
+        "site": "goat",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 34,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 10,
+      "timestamp": "2026-05-17T00:31:13.473817",
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -56,
+      "outcome": "not_found"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T00:31:23.197913",
+      "strategy": {
+        "site": "amazon",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -24,
+      "outcome": "not_found"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T00:31:23.768579",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "moderate",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -16,
+      "outcome": "not_found"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T00:31:46.456583",
+      "strategy": {
+        "site": "nike",
+        "query_style": "specific",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -8,
+      "outcome": "not_found"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T00:32:31.640782",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -60,
+      "outcome": "not_found"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-17T00:32:45.730929",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": -8,
+      "outcome": "not_found"
+    },
+    {
+      "run": 5,
+      "timestamp": "2026-05-17T00:33:56.105152",
+      "strategy": {
+        "site": "amazon",
+        "query_style": "specific",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -56,
+      "outcome": "not_found"
+    },
+    {
+      "run": 6,
+      "timestamp": "2026-05-17T00:34:59.142076",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 6,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 7,
+      "timestamp": "2026-05-17T00:36:03.351283",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "specific",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_3_fails"
+      },
+      "reward": -14,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T00:36:20.299353",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 8,
+      "timestamp": "2026-05-17T00:36:31.657184",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T00:36:36.837717",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "moderate",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 9,
+      "timestamp": "2026-05-17T00:37:05.724369",
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "outcome": "purchased"
+    },
+    {
+      "run": 10,
+      "timestamp": "2026-05-17T00:37:42.401868",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "outcome": "purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T00:42:53.519760",
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "brand_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "outcome": "purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T00:43:20.579826",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T00:43:34.684890",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-17T00:43:51.697477",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T01:45:13.519556",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 22,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T01:45:55.360857",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 26,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T01:46:20.053279",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T01:46:21.099070",
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "size_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 38,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T01:46:37.762855",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-17T01:46:43.439437",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_2_fails"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 5,
+      "timestamp": "2026-05-17T01:46:54.889972",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T01:47:14.800761",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 72,
+      "outcome": "purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T01:51:11.781598",
+      "strategy": {
+        "site": "nike",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T01:51:25.040491",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T01:51:41.932569",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "price_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 3,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T01:57:20.946250",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T01:57:53.259192",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 84,
+      "outcome": "purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T01:58:06.239765",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 99,
+      "outcome": "purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T02:02:26.467439",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 11,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T02:03:00.870277",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T02:03:24.021365",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 73,
+      "outcome": "purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T02:31:17.939391",
+      "strategy": {
+        "site": "amazon",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 30,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T02:31:47.657313",
+      "strategy": {
+        "site": "6pm",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 30,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T02:32:16.947435",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 4,
+      "timestamp": "2026-05-17T02:32:35.637154",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T02:34:09.194543",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 26,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T02:34:30.365928",
+      "strategy": {
+        "site": "stockx",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 38,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 3,
+      "timestamp": "2026-05-17T02:34:51.858385",
+      "strategy": {
+        "site": "zappos",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": 30,
+      "outcome": "found_not_purchased"
+    },
+    {
+      "run": 1,
+      "timestamp": "2026-05-17T02:42:36.776916",
+      "strategy": {
+        "site": "goat",
+        "query_style": "broad",
+        "filter_strategy": "rating_first",
+        "abandon_threshold": "after_1_fail"
+      },
+      "reward": -35,
+      "outcome": "not_found"
+    },
+    {
+      "run": 2,
+      "timestamp": "2026-05-17T02:43:18.792549",
       "strategy": {
         "site": "nike",
         "query_style": "moderate",
         "filter_strategy": "rating_first",
         "abandon_threshold": "after_1_fail"
       },
-      "reward": 63,
-      "outcome": "purchased"
-    },
-    {
-      "run": 2,
-      "timestamp": "2026-05-16T21:30:26.016624",
-      "strategy": {
-        "site": "zappos",
-        "query_style": "specific",
-        "filter_strategy": "brand_first",
-        "abandon_threshold": "after_2_fails"
-      },
-      "reward": 67,
-      "outcome": "purchased"
-    },
-    {
-      "run": 3,
-      "timestamp": "2026-05-16T21:30:37.989239",
-      "strategy": {
-        "site": "6pm",
-        "query_style": "specific",
-        "filter_strategy": "brand_first",
-        "abandon_threshold": "after_3_fails"
-      },
-      "reward": 57,
-      "outcome": "purchased"
-    },
-    {
-      "run": 4,
-      "timestamp": "2026-05-16T21:30:51.665923",
-      "strategy": {
-        "site": "amazon",
-        "query_style": "moderate",
-        "filter_strategy": "brand_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": 55,
-      "outcome": "purchased"
-    },
-    {
-      "run": 5,
-      "timestamp": "2026-05-16T21:31:01.805377",
-      "strategy": {
-        "site": "goat",
-        "query_style": "specific",
-        "filter_strategy": "price_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": -4,
+      "reward": -59,
       "outcome": "not_found"
     },
     {
-      "run": 1,
-      "timestamp": "2026-05-16T21:36:51.735217",
-      "strategy": {
-        "site": "stockx",
-        "query_style": "specific",
-        "filter_strategy": "size_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": 67,
-      "outcome": "purchased"
-    },
-    {
-      "run": 2,
-      "timestamp": "2026-05-16T21:37:03.929292",
+      "run": 3,
+      "timestamp": "2026-05-17T02:43:42.518220",
       "strategy": {
         "site": "6pm",
-        "query_style": "moderate",
-        "filter_strategy": "size_first",
-        "abandon_threshold": "after_2_fails"
-      },
-      "reward": 57,
-      "outcome": "purchased"
-    },
-    {
-      "run": 3,
-      "timestamp": "2026-05-16T21:37:20.769121",
-      "strategy": {
-        "site": "goat",
         "query_style": "broad",
-        "filter_strategy": "price_first",
+        "filter_strategy": "size_first",
         "abandon_threshold": "after_1_fail"
       },
-      "reward": 63,
-      "outcome": "purchased"
+      "reward": -24,
+      "outcome": "not_found"
     },
     {
       "run": 4,
-      "timestamp": "2026-05-16T21:37:36.697103",
-      "strategy": {
-        "site": "goat",
-        "query_style": "broad",
-        "filter_strategy": "size_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": 63,
-      "outcome": "purchased"
-    },
-    {
-      "run": 5,
-      "timestamp": "2026-05-16T21:37:48.473419",
+      "timestamp": "2026-05-17T02:44:04.305208",
       "strategy": {
         "site": "6pm",
         "query_style": "broad",
         "filter_strategy": "rating_first",
-        "abandon_threshold": "after_2_fails"
-      },
-      "reward": 57,
-      "outcome": "purchased"
-    },
-    {
-      "run": 6,
-      "timestamp": "2026-05-16T21:38:10.879940",
-      "strategy": {
-        "site": "goat",
-        "query_style": "moderate",
-        "filter_strategy": "size_first",
         "abandon_threshold": "after_1_fail"
       },
-      "reward": 51,
-      "outcome": "purchased"
-    },
-    {
-      "run": 7,
-      "timestamp": "2026-05-16T21:38:20.610137",
-      "strategy": {
-        "site": "stockx",
-        "query_style": "moderate",
-        "filter_strategy": "brand_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": 67,
-      "outcome": "purchased"
-    },
-    {
-      "run": 8,
-      "timestamp": "2026-05-16T21:38:31.761596",
-      "strategy": {
-        "site": "6pm",
-        "query_style": "broad",
-        "filter_strategy": "rating_first",
-        "abandon_threshold": "after_2_fails"
-      },
-      "reward": 57,
-      "outcome": "purchased"
-    },
-    {
-      "run": 9,
-      "timestamp": "2026-05-16T21:38:50.313968",
-      "strategy": {
-        "site": "goat",
-        "query_style": "broad",
-        "filter_strategy": "size_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": 53,
-      "outcome": "purchased"
-    },
-    {
-      "run": 10,
-      "timestamp": "2026-05-16T21:38:59.623555",
-      "strategy": {
-        "site": "zappos",
-        "query_style": "specific",
-        "filter_strategy": "price_first",
-        "abandon_threshold": "after_1_fail"
-      },
-      "reward": 67,
-      "outcome": "purchased"
+      "reward": -24,
+      "outcome": "not_found"
     }
   ],
   "learned_insights": [
     {
       "run": 1,
-      "lesson": "Prioritize high-rated items early; rating-first filtering leads to successful full-match purchases efficiently."
+      "lesson": "Avoid StockX; captcha blocks are frequent and waste run budget entirely."
     },
     {
       "run": 2,
-      "lesson": "Brand-first filtering on Zappos efficiently finds exact matches and enables fast, under-budget purchases."
+      "lesson": "Avoid 6pm; captcha blocks broad brand-first searches, wasting time with no reward."
     },
     {
       "run": 3,
-      "lesson": "Brand-first filtering on 6pm with specific queries leads to fast, budget-friendly purchases."
+      "lesson": "Avoid price_first filtering on Amazon; it triggers captcha blocks more frequently."
     },
     {
       "run": 4,
-      "lesson": "Brand-first filtering efficiently finds full matches; expect captchas but proceed confidently to checkout."
+      "lesson": "Try broader search terms before applying size filters on GOAT."
     },
     {
       "run": 5,
-      "lesson": "Try broader search terms when specific queries return no results on GOAT."
-    },
-    {
-      "run": 1,
-      "lesson": "Size-first filtering on StockX yields fast, successful purchases within budget."
-    },
-    {
-      "run": 2,
-      "lesson": "Size-first filtering on 6pm yields fast, under-budget purchases with partial item matches."
-    },
-    {
-      "run": 3,
-      "lesson": "Price-first filtering on GOAT efficiently finds budget-friendly full matches with fast delivery."
-    },
-    {
-      "run": 4,
-      "lesson": "Size-first filtering on GOAT efficiently finds full matches quickly, enabling fast, budget-friendly purchases."
-    },
-    {
-      "run": 5,
-      "lesson": "Rating-first filtering on 6pm yields fast, under-budget purchases with partial but sufficient matches."
+      "lesson": "Try broader search terms when specific queries return no results on Nike."
     },
     {
       "run": 6,
-      "lesson": "Size-first filtering on GOAT efficiently secures purchases under budget with fast delivery."
+      "lesson": "Try broader search terms when specific queries return no results on Zappos."
     },
     {
       "run": 7,
-      "lesson": "Brand-first filtering on StockX efficiently finds full matches under budget with fast delivery."
+      "lesson": "Try broader search terms before applying size filters on StockX."
     },
     {
       "run": 8,
-      "lesson": "Rating-first filtering on 6pm yields successful purchases; prioritize ratings for efficient broad queries."
+      "lesson": "Try more specific search terms before applying size filters to avoid empty results."
     },
     {
       "run": 9,
-      "lesson": "Size-first filtering on GOAT efficiently narrows results and enables fast, under-budget purchases."
+      "lesson": "Avoid GOAT; implement captcha detection early to switch sites faster."
     },
     {
       "run": 10,
-      "lesson": "Price-first filtering on Zappos efficiently secures full-match items under budget with fast delivery."
+      "lesson": "Try broader search terms when specific queries on brand sites yield no results."
+    },
+    {
+      "run": 1,
+      "lesson": "Check stock availability before finalizing selection; out-of-stock items waste time despite full matches."
+    },
+    {
+      "run": 2,
+      "lesson": "Check stock availability before selecting an item to avoid out-of-stock failures."
+    },
+    {
+      "run": 3,
+      "lesson": "Avoid StockX for broad queries with rating filters; it lacks sufficient rating data."
+    },
+    {
+      "run": 4,
+      "lesson": "When item found with full match under budget, proceed to purchase immediately."
+    },
+    {
+      "run": 5,
+      "lesson": "Size-first filtering on GOAT with moderate queries yields fast, accurate, budget-friendly results."
+    },
+    {
+      "run": 6,
+      "lesson": "When item fully matches with fast delivery under budget, complete the purchase immediately."
+    },
+    {
+      "run": 7,
+      "lesson": "When item matches fully and is under budget, proceed to purchase immediately."
+    },
+    {
+      "run": 8,
+      "lesson": "When item found with full match and under budget, complete the purchase immediately."
+    },
+    {
+      "run": 9,
+      "lesson": "When item matches fully and is under budget, complete the purchase immediately."
+    },
+    {
+      "run": 10,
+      "lesson": "If size filtering yields out-of-stock results, try broader searches before concluding not found."
+    },
+    {
+      "run": 1,
+      "lesson": "Try specific search terms; broad queries on Amazon yield poor results and waste attempts."
+    },
+    {
+      "run": 1,
+      "lesson": "Try broader search terms before applying price filters to avoid missing products."
+    },
+    {
+      "run": 2,
+      "lesson": "Try broader search terms when specific queries on Nike site yield no results."
+    },
+    {
+      "run": 3,
+      "lesson": "When size filtering yields out-of-stock, broaden search before abandoning the query."
+    },
+    {
+      "run": 4,
+      "lesson": "Try more specific search terms before applying size filters on GOAT."
+    },
+    {
+      "run": 5,
+      "lesson": "When items are out of stock, switch sites or broaden search immediately."
+    },
+    {
+      "run": 6,
+      "lesson": "When item matches perfectly and is under budget, complete the purchase immediately."
+    },
+    {
+      "run": 7,
+      "lesson": "Check stock availability before committing to an item, even when all filters match."
+    },
+    {
+      "run": 1,
+      "lesson": "Size-first filtering on 6pm with moderate queries leads to fast, successful purchases."
+    },
+    {
+      "run": 8,
+      "lesson": "Prioritize high ratings on 6pm for fast, budget-friendly full-match purchases."
+    },
+    {
+      "run": 2,
+      "lesson": "Filter by size first on Zappos for fast, accurate full-match results within budget."
+    },
+    {
+      "run": 9,
+      "lesson": "Filter by brand first on Nike's site to quickly find exact matches under budget."
+    },
+    {
+      "run": 10,
+      "lesson": "Broad queries with rating-first filtering on StockX reliably yield fast, budget-friendly purchases."
+    },
+    {
+      "run": 1,
+      "lesson": "Filter by brand first on Nike's site to find full matches quickly and under budget."
+    },
+    {
+      "run": 2,
+      "lesson": "Price-first filtering on GOAT yields fast, budget-friendly full matches efficiently."
+    },
+    {
+      "run": 3,
+      "lesson": "Broad queries with rating-first filtering on StockX consistently delivers fast, budget-friendly, successful purchases."
+    },
+    {
+      "run": 4,
+      "lesson": "Prioritize rating filters on 6pm for fast, successful purchases within budget."
+    },
+    {
+      "run": 1,
+      "lesson": "When item found with full match under budget, proceed to purchase immediately."
+    },
+    {
+      "run": 2,
+      "lesson": "When item matches fully and is under budget, complete the purchase immediately."
+    },
+    {
+      "run": 1,
+      "lesson": "Broad queries with rating-first filtering on StockX yield excellent results; maintain this approach."
+    },
+    {
+      "run": 3,
+      "lesson": "When item found matches fully and is under budget, proceed to purchase immediately."
+    },
+    {
+      "run": 2,
+      "lesson": "Broad queries with rating-first filtering on StockX yield fast, successful, budget-friendly purchases."
+    },
+    {
+      "run": 4,
+      "lesson": "Broad queries with rating-first filters on StockX yield fast, successful purchases within budget."
+    },
+    {
+      "run": 5,
+      "lesson": "Price-first filtering on 6pm with broad queries yields fast, successful purchases under budget."
+    },
+    {
+      "run": 3,
+      "lesson": "Prioritize rating filters on GOAT for reliable, budget-friendly finds with fast delivery."
+    },
+    {
+      "run": 1,
+      "lesson": "When item matches fully and is under budget, proceed to purchase immediately."
+    },
+    {
+      "run": 2,
+      "lesson": "Prioritize rating filters on 6pm for fast, successful purchases within budget."
+    },
+    {
+      "run": 3,
+      "lesson": "Handle CAPTCHA early to avoid blocking purchase completion despite finding ideal items."
+    },
+    {
+      "run": 1,
+      "lesson": "Prioritize high ratings first on Zappos; broad queries with rating filters yield perfect matches fast."
+    },
+    {
+      "run": 2,
+      "lesson": "Broad queries with rating-first filtering on StockX efficiently secure full matches under budget."
+    },
+    {
+      "run": 3,
+      "lesson": "Prioritize high ratings on Zappos for fast, budget-friendly, successful purchases."
+    },
+    {
+      "run": 1,
+      "lesson": "Handle captcha early to convert found items into successful purchases."
+    },
+    {
+      "run": 2,
+      "lesson": "Prioritize purchasing when full match found under budget with fast delivery available."
+    },
+    {
+      "run": 3,
+      "lesson": "Broad queries with rating-first filtering work well on StockX; expect captcha but persist."
+    },
+    {
+      "run": 1,
+      "lesson": "Prioritize purchasing when item fully matches; don't stop at finding alone."
+    },
+    {
+      "run": 2,
+      "lesson": "Prioritize purchase completion when item fully matches; don't stop at finding."
+    },
+    {
+      "run": 3,
+      "lesson": "Prioritize purchasing when item fully matches; don't hesitate after finding perfect results."
+    },
+    {
+      "run": 4,
+      "lesson": "Prioritize purchase completion when full match found; don't stop at finding item."
+    },
+    {
+      "run": 1,
+      "lesson": "Prioritize purchase completion when full match found; don't stop at discovery."
+    },
+    {
+      "run": 2,
+      "lesson": "Prioritize purchasing when full match found under budget with fast delivery available."
+    },
+    {
+      "run": 3,
+      "lesson": "Prioritize purchasing when full match found; hesitation loses reward despite ideal conditions."
+    },
+    {
+      "run": 1,
+      "lesson": "Avoid GOAT; implement captcha detection early to switch sites faster."
+    },
+    {
+      "run": 2,
+      "lesson": "Avoid Nike site; captcha blocks and stock issues waste time, try alternatives."
+    },
+    {
+      "run": 3,
+      "lesson": "Try more specific queries; broad searches on 6pm with size_first filtering yield no results."
+    },
+    {
+      "run": 4,
+      "lesson": "Try more specific queries; broad searches on 6pm with rating filters yield no results."
     }
   ],
   "rl_weights": {
     "site": {
-      "zappos": 0.135,
-      "6pm": 0.234,
-      "stockx": 0.199,
-      "goat": 0.29,
-      "nike": 0.071,
-      "amazon": 0.071
+      "zappos": 0.158,
+      "6pm": 0.193,
+      "stockx": 0.311,
+      "goat": 0.144,
+      "nike": 0.132,
+      "amazon": 0.062
     },
     "query_style": {
-      "broad": 0.445,
-      "moderate": 0.302,
-      "specific": 0.253
+      "broad": 0.885,
+      "moderate": 0.058,
+      "specific": 0.058
     },
     "filter_strategy": {
-      "price_first": 0.227,
-      "brand_first": 0.157,
-      "rating_first": 0.21,
-      "size_first": 0.406
+      "price_first": 0.115,
+      "brand_first": 0.137,
+      "rating_first": 0.693,
+      "size_first": 0.055
     },
     "abandon_threshold": {
-      "after_1_fail": 0.612,
-      "after_2_fails": 0.297,
-      "after_3_fails": 0.091
+      "after_1_fail": 0.882,
+      "after_2_fails": 0.061,
+      "after_3_fails": 0.058
     }
   }
 }
